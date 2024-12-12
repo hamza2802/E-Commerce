@@ -17,6 +17,8 @@ public class UserRequestDto {
 	private String email;
 	private String password;
 	private RoleType role; 
+	
+	//for delivery agent details
 	private String vehicleType; 
     private String vehicleNumber;
     private String deliveryZone;

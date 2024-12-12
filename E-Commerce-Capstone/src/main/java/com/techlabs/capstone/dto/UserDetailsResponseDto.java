@@ -1,7 +1,5 @@
 package com.techlabs.capstone.dto;
 
-import com.techlabs.capstone.entity.User;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,6 @@ public class UserDetailsResponseDto {
 
 	private int pincode;
 
-	private User user;
+	private int userId;
 
 }
