@@ -14,55 +14,47 @@ import com.techlabs.capstone.repository.UserRepository;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-	@Autowired
-	private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	@Autowired
-	private UserDetailsRepository userDetailsRepository;
+    @Autowired
+    private UserDetailsRepository userDetailsRepository;
 
-	@Autowired
-	private ModelMapper modelMapper;
+    @Autowired
+    private ModelMapper modelMapper;
 
-	// Add user details
-	public UserDetailsResponseDto addUserDetails(UserDetailsRequestDto userDetailsRequestDto) {
-		// Find user by userId
-		User user = userRepository.findById(userDetailsRequestDto.getUserId()).orElseThrow(
-				() -> new RuntimeException("User not found with ID: " + userDetailsRequestDto.getUserId()));
+    @Override
+    public UserDetailsResponseDto saveOrUpdateUserDetails(int userId, UserDetailsRequestDto userDetailsRequestDto) {
 
-		// Create and set UserDetails for the user
-		UserDetails userDetails = new UserDetails();
-		userDetails.setContactNumber(userDetailsRequestDto.getContactNumber());
-		userDetails.setAlternateContactNumber(userDetailsRequestDto.getAlternateContactNumber());
-		userDetails.setAddress(userDetailsRequestDto.getAddress());
-		userDetails.setCity(userDetailsRequestDto.getCity());
-		userDetails.setState(userDetailsRequestDto.getState());
-		userDetails.setPincode(userDetailsRequestDto.getPincode());
-		userDetails.setUser(user); // Link to the user
+        // Fetch the user from the database using the userId from the URL path
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
-		// Save UserDetails
-		UserDetails savedUserDetails = userDetailsRepository.save(userDetails);
+        // Try to find existing user details using the userId, or create a new one if not found
+        UserDetails userDetails = userDetailsRepository.findByUser_UserId(userId)
+                .orElse(new UserDetails());
 
-		return modelMapper.map(savedUserDetails, UserDetailsResponseDto.class);
-	}
+        // Set the fields from the request DTO to the user details entity
+        userDetails.setContactNumber(userDetailsRequestDto.getContactNumber());
+        userDetails.setAlternateContactNumber(userDetailsRequestDto.getAlternateContactNumber());
+        userDetails.setAddress(userDetailsRequestDto.getAddress());
+        userDetails.setCity(userDetailsRequestDto.getCity());
+        userDetails.setState(userDetailsRequestDto.getState());
+        userDetails.setPincode(userDetailsRequestDto.getPincode());
 
-	// Update user details
-	public UserDetailsResponseDto updateUserDetails(int userId, UserDetailsRequestDto userDetailsRequestDto) {
-		// Find existing UserDetails by userId
-		UserDetails existingUserDetails = userDetailsRepository.findByUserId(userId)
-				.orElseThrow(() -> new RuntimeException("UserDetails not found for user with ID: " + userId));
+        // Associate the user with the userDetails
+        userDetails.setUser(user);
 
-		// Update the details
-		existingUserDetails.setContactNumber(userDetailsRequestDto.getContactNumber());
-		existingUserDetails.setAlternateContactNumber(userDetailsRequestDto.getAlternateContactNumber());
-		existingUserDetails.setAddress(userDetailsRequestDto.getAddress());
-		existingUserDetails.setCity(userDetailsRequestDto.getCity());
-		existingUserDetails.setState(userDetailsRequestDto.getState());
-		existingUserDetails.setPincode(userDetailsRequestDto.getPincode());
+        // Save or update the user details
+        UserDetails savedUserDetails = userDetailsRepository.save(userDetails);
 
-		// Save updated UserDetails
-		UserDetails updatedUserDetails = userDetailsRepository.save(existingUserDetails);
+        // Map the saved entity to the response DTO
+        UserDetailsResponseDto responseDto = modelMapper.map(savedUserDetails, UserDetailsResponseDto.class);
 
-		return modelMapper.map(updatedUserDetails, UserDetailsResponseDto.class);
-	}
+        // Set the userId in the response DTO (it should be included for response)
+        responseDto.setUserId(user.getUserId()); 
+
+        return responseDto;
+    }
 
 }
