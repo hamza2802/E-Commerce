@@ -16,6 +16,9 @@ public class DeliveryAgentDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "delivery_agent_id")
     private int deliveryAgentId;
+    
+    @Column(name="contactnumber")
+    private long contactNumber;
 
     @Column(name = "vehicle_type")
     private String vehicleType;

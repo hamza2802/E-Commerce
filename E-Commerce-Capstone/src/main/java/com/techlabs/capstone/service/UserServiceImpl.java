@@ -5,6 +5,9 @@ import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.techlabs.capstone.dto.UserRequestDto;
@@ -76,31 +79,30 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponseDto addNewDeliveryAgent(UserRequestDto userRequestDto) {
-		Optional<Role> roleOptional = roleRepository.findById(RoleType.DELIVERY_AGENT);
-		if (!roleOptional.isPresent()) {
-			throw new RuntimeException("Role DELIVERY_AGENT not found");
-		}
+	    // Map Role to User entity
+	    Optional<Role> roleOptional = roleRepository.findById(RoleType.DELIVERY_AGENT);
+	    if (!roleOptional.isPresent()) {
+	        throw new RuntimeException("Role DELIVERY_AGENT not found");
+	    }
 
-		User user = new User();
-		user.setEmail(userRequestDto.getEmail());
-		user.setUserFirstName(userRequestDto.getUserFirstName());
-		user.setUserLastName(userRequestDto.getUserLastName());
-		user.setUserPassword(userRequestDto.getPassword()); 
-		user.setRole(roleOptional.get());
+	    // Use ModelMapper to convert UserRequestDto to User entity
+	    User user = modelMapper.map(userRequestDto, User.class);
+	    user.setRole(roleOptional.get());
 
-		User savedUser = userRepository.save(user);
+	    // Save User
+	    User savedUser = userRepository.save(user);
 
-		DeliveryAgentDetails deliveryAgent = new DeliveryAgentDetails();
-		deliveryAgent.setVehicleType(userRequestDto.getVehicleType());
-		deliveryAgent.setVehicleNumber(userRequestDto.getVehicleNumber());
-		deliveryAgent.setDeliveryZone(userRequestDto.getDeliveryZone());
-		deliveryAgent.setUser(savedUser); 
+	    // Create DeliveryAgentDetails and use ModelMapper to map from UserRequestDto
+	    DeliveryAgentDetails deliveryAgent = modelMapper.map(userRequestDto, DeliveryAgentDetails.class);
+	    deliveryAgent.setUser(savedUser);
 
-		DeliveryAgentDetails savedDeliveryAgent = deliveryAgentRepository.save(deliveryAgent);
+	    // Save DeliveryAgentDetails
+	    DeliveryAgentDetails savedDeliveryAgent = deliveryAgentRepository.save(deliveryAgent);
 
-		return modelMapper.map(savedUser, UserResponseDto.class);
-
+	    // Map the saved User entity to UserResponseDto
+	    return modelMapper.map(savedUser, UserResponseDto.class);
 	}
+
 
 	@Override
 	public UserResponseDto updateUser(int userId, UserRequestDto userRequestDto) {
@@ -143,4 +145,24 @@ public class UserServiceImpl implements UserService {
 
 		return modelMapper.map(user, UserResponseDto.class);
 	}
+	
+	@Override
+	public Page<UserResponseDto> getAllUsersWithRoleUser(int page, int size) {
+	    Optional<Role> roleOptional = roleRepository.findById(RoleType.USER);
+	    if (!roleOptional.isPresent()) {
+	        throw new RuntimeException("Role USER not found");
+	    }
+
+	    Role userRole = roleOptional.get();
+	    Pageable pageable = PageRequest.of(page, size);
+
+	    Page<User> userPage = userRepository.findAllByRole(userRole, pageable);
+
+	  
+	    return userPage.map(user -> modelMapper.map(user, UserResponseDto.class));
+	}
+
+
+	
+	
 }

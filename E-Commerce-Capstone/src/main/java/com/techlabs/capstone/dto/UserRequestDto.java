@@ -16,10 +16,11 @@ public class UserRequestDto {
 	private String userLastName;
 	private String email;
 	private String password;
-	private RoleType role; 
+	private RoleType role;
 	
 	//for delivery agent details
 	private String vehicleType; 
     private String vehicleNumber;
     private String deliveryZone;
+    private long contactNumber;
 }
