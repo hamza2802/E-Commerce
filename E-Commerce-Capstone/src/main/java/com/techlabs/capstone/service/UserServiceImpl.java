@@ -1,5 +1,7 @@
 package com.techlabs.capstone.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
 import com.techlabs.capstone.dto.UserRequestDto;
 import com.techlabs.capstone.dto.UserResponseDto;
 import com.techlabs.capstone.entity.DeliveryAgentDetails;
@@ -79,27 +82,26 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponseDto addNewDeliveryAgent(UserRequestDto userRequestDto) {
-	    // Map Role to User entity
+	    
 	    Optional<Role> roleOptional = roleRepository.findById(RoleType.DELIVERY_AGENT);
 	    if (!roleOptional.isPresent()) {
 	        throw new RuntimeException("Role DELIVERY_AGENT not found");
 	    }
 
-	    // Use ModelMapper to convert UserRequestDto to User entity
+	    
 	    User user = modelMapper.map(userRequestDto, User.class);
 	    user.setRole(roleOptional.get());
 
-	    // Save User
+	   
 	    User savedUser = userRepository.save(user);
 
-	    // Create DeliveryAgentDetails and use ModelMapper to map from UserRequestDto
+	 
 	    DeliveryAgentDetails deliveryAgent = modelMapper.map(userRequestDto, DeliveryAgentDetails.class);
 	    deliveryAgent.setUser(savedUser);
 
-	    // Save DeliveryAgentDetails
+	   
 	    DeliveryAgentDetails savedDeliveryAgent = deliveryAgentRepository.save(deliveryAgent);
 
-	    // Map the saved User entity to UserResponseDto
 	    return modelMapper.map(savedUser, UserResponseDto.class);
 	}
 
@@ -152,15 +154,38 @@ public class UserServiceImpl implements UserService {
 	    if (!roleOptional.isPresent()) {
 	        throw new RuntimeException("Role USER not found");
 	    }
-
 	    Role userRole = roleOptional.get();
 	    Pageable pageable = PageRequest.of(page, size);
-
 	    Page<User> userPage = userRepository.findAllByRole(userRole, pageable);
-
 	  
 	    return userPage.map(user -> modelMapper.map(user, UserResponseDto.class));
 	}
+	
+	@Override
+	public Page<DeliveryAgentResponseDto> getAllDeliveryAgents(int page, int size) {
+	    
+	    Optional<Role> roleOptional = roleRepository.findById(RoleType.DELIVERY_AGENT);
+	    if (!roleOptional.isPresent()) {
+	        throw new RuntimeException("Role DELIVERY_AGENT not found");
+	    }
+	    Role deliveryAgentRole = roleOptional.get();
+
+	    Pageable pageable = PageRequest.of(page, size);
+
+	    Page<User> deliveryAgentsPage = userRepository.findAllByRole(deliveryAgentRole, pageable);
+   
+	    return deliveryAgentsPage.map(user -> {	        
+	        DeliveryAgentResponseDto responseDto = modelMapper.map(user, DeliveryAgentResponseDto.class);	        
+	        DeliveryAgentDetails deliveryAgentDetails = user.getDeliveryAgentDetails();        
+	        responseDto.setContactNumber(deliveryAgentDetails.getContactNumber());
+	        responseDto.setDeliveryZone(deliveryAgentDetails.getDeliveryZone());
+	        return responseDto;
+	    });
+	}
+
+
+
+
 
 
 	

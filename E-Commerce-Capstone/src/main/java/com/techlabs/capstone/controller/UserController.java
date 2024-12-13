@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
 import com.techlabs.capstone.dto.UserRequestDto;
 import com.techlabs.capstone.dto.UserResponseDto;
 import com.techlabs.capstone.service.UserService;
@@ -52,6 +53,13 @@ public class UserController {
     public ResponseEntity<Page<UserResponseDto>> getAllUsersWithRoleUser(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Page<UserResponseDto> users = userService.getAllUsersWithRoleUser(page, size);
         return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+    
+    @GetMapping("/delivery-agents")
+    public ResponseEntity<Page<DeliveryAgentResponseDto>> getAllDeliveryAgents(
+        @RequestParam("page") int page, 
+        @RequestParam("size") int size) {
+        return ResponseEntity.ok(userService.getAllDeliveryAgents(page, size));
     }
 
 
