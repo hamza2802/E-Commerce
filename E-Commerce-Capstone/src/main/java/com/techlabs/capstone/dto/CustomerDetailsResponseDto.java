@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class CustomerDetailsResponseDto {
 
+	private String email;
 	private String firstName;
 	private String lastName;
 	private String contactNumber;

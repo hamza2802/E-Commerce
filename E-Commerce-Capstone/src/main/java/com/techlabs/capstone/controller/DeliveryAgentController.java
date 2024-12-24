@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.techlabs.capstone.dto.DeliveryAgentRequestDto;
 import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
-import com.techlabs.capstone.service.DeliveryAgentServiceImpl;
+import com.techlabs.capstone.service.DeliveryAgentService;
 
 @RestController
 @RequestMapping("/e-commerce/delivery-agents")
 public class DeliveryAgentController {
 
     @Autowired
-    private DeliveryAgentServiceImpl deliveryAgentService;
+    private DeliveryAgentService deliveryAgentService;
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('ADMIN')")
