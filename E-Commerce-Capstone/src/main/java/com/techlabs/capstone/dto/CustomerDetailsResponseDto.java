@@ -7,22 +7,15 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-public class UserDetailsResponseDto {
+public class CustomerDetailsResponseDto {
 
-	private int userDetailsId;
-
-	private long contactNumber;
-
-	private long alternateContactNumber;
-
+	private String firstName;
+	private String lastName;
+	private String contactNumber;
+	private String alternateContactNumber;
 	private String address;
-
 	private String city;
-
-	private String State;
-
+	private String state;
 	private int pincode;
-
-	private int userId;
 
 }

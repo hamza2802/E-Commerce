@@ -63,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
 
 	    // Encode the password before saving
 	    user.setPassword(passwordEncoder.encode(registration.getPassword()));
+	    user.setActive(true);
 
 	    // Fetch the role from the role repository
 	    List<Role> roles = roleRepo.findByRole("ROLE_CUSTOMER");

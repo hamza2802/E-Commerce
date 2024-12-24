@@ -8,11 +8,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.techlabs.capstone.entity.AdminDetails; // Assuming the AdminDetails entity
+import com.techlabs.capstone.entity.AdminDetails; 
 import com.techlabs.capstone.entity.Role;
 import com.techlabs.capstone.entity.User;
-import com.techlabs.capstone.repository.AdminDetailsRepository; // Assuming AdminDetails repository
-import com.techlabs.capstone.repository.RoleRepository;
+import com.techlabs.capstone.repository.AdminDetailsRepository; 
+import com.techlabs.capstone.repository.RoleRepository; 
 import com.techlabs.capstone.repository.UserRepository;
 
 import jakarta.annotation.PostConstruct;
@@ -49,7 +49,8 @@ import jakarta.annotation.PostConstruct;
             // Create the admin user
             User adminUser = new User();
             adminUser.setEmail("admin@gmail.com");
-            adminUser.setPassword(passwordEncoder.encode("admin@pass")); // Encode the password
+            adminUser.setPassword(passwordEncoder.encode("admin@pass"));// Encode the password
+            adminUser.setActive(true);
 
             // Assign the role(s) to the admin user
             adminUser.setRoles(roles);

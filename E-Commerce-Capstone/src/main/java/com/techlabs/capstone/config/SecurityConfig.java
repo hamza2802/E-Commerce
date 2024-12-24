@@ -45,10 +45,10 @@ public class SecurityConfig {
 		
 		http.authorizeHttpRequests(request -> request.requestMatchers("/e-commerce/register").permitAll()
 				.requestMatchers("/e-commerce/login").permitAll()
-				.requestMatchers(HttpMethod.GET, "/app/**").permitAll()
-				.requestMatchers(HttpMethod.POST, "/app/**").authenticated()
-				.requestMatchers(HttpMethod.PUT, "/app/**")
-				.authenticated().requestMatchers(HttpMethod.DELETE, "/app/**").authenticated().anyRequest()
+				.requestMatchers(HttpMethod.GET, "/e-commerce/**").permitAll()
+				.requestMatchers(HttpMethod.POST, "/e-commerce/**").authenticated()
+				.requestMatchers(HttpMethod.PUT, "/e-commerce/**")
+				.authenticated().requestMatchers(HttpMethod.DELETE, "/e-commerce/**").authenticated().anyRequest()
 				.authenticated());
 
 		http.exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint));

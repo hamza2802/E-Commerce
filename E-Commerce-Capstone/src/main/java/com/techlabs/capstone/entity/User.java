@@ -34,6 +34,9 @@ public class User {
 
     @Column(name = "password")
     private String password;
+    
+    @Column(name = "isActive")
+    private boolean isActive;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

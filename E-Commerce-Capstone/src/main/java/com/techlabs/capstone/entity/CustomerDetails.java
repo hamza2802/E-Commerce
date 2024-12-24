@@ -32,10 +32,10 @@ public class CustomerDetails {
     private String lastName;
 
 	@Column(name = "contact_number")
-	private long contactNumber;
+	private String contactNumber;
 
 	@Column(name = "alternate_contact_number")
-	private long alternateContactNumber;
+	private String alternateContactNumber;
 
 	@Column(name = "address")
 	private String address;
