@@ -2,18 +2,20 @@ package com.techlabs.capstone.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Data
-public class UserResponseDto {
-	
-	private int userId;
-	private String firstname;
-	private String lastname;
+public class RegistrationDto {
+
 	private String email;
-	private String role;
+
+	private String password;
+	
+	private String firstname;
+	
+	private String lastname;
 
 
 }

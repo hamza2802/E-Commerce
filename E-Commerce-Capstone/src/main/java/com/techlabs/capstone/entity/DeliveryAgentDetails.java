@@ -17,6 +17,12 @@ public class DeliveryAgentDetails {
     @Column(name = "delivery_agent_id")
     private int deliveryAgentId;
     
+    @Column(name = "first_name")
+    private String userFirstName;
+
+    @Column(name = "last_name")
+    private String userLastName;
+    
     @Column(name="contactnumber")
     private long contactNumber;
 

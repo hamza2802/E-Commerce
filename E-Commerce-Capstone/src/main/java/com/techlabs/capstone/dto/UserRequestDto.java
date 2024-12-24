@@ -1,7 +1,5 @@
 package com.techlabs.capstone.dto;
 
-import com.techlabs.capstone.entity.RoleType;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +14,7 @@ public class UserRequestDto {
 	private String userLastName;
 	private String email;
 	private String password;
-	private RoleType role;
+	private String role;
 	
 	//for delivery agent details
 	private String vehicleType; 

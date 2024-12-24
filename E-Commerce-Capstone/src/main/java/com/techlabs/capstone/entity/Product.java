@@ -33,8 +33,10 @@ public class Product {
     private String productName;
     
     @Column(name = "category")
-    @Enumerated(EnumType.STRING)
-    private ProductType category;
+    private String category;
+    
+    @Column(name = "stock")
+    private int stock;
 
     @Column(name = "description", length = 2000)
     private String productDescription;

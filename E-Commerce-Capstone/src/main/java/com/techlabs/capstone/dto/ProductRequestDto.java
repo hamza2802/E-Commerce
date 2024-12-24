@@ -2,8 +2,6 @@ package com.techlabs.capstone.dto;
 
 import java.util.List;
 
-import com.techlabs.capstone.entity.ProductType;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,7 @@ public class ProductRequestDto {
 
 	private Double productActualPrice;
 	
-	private ProductType category; 
+	private String category; 
 	
     private List<String> imageLinks; 
 

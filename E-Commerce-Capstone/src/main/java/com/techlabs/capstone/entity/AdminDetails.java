@@ -13,37 +13,26 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+
 @Entity
-@Table(name = "user_details")
+@Table(name = "admin_details")
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-public class UserDetails {
-
+public class AdminDetails {
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "user_details_id")
-	private int userDetailsId;
+	@Column(name = "admin_details_id")
+	private int adminsDetailsId;
+	
+    @Column(name = "first_name")
+    private String firstName;
 
-	@Column(name = "contact_number")
-	private long contactNumber;
-
-	@Column(name = "alternate_contact_number")
-	private long alternateContactNumber;
-
-	@Column(name = "address")
-	private String address;
-
-	@Column(name = "city")
-	private String city;
-
-	@Column(name = "State")
-	private String State;
-
-	@Column(name = "pincode")
-	private int pincode;
-
-	@OneToOne(fetch = FetchType.LAZY)
+    @Column(name = "last_name")
+    private String lastName;
+    
+    @OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", unique = true)
 	private User user;
 

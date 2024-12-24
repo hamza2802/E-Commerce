@@ -1,45 +1,48 @@
 package com.techlabs.capstone.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import com.techlabs.capstone.entity.Role;
-import com.techlabs.capstone.entity.RoleType;
 import com.techlabs.capstone.repository.RoleRepository;
 
-import jakarta.annotation.PostConstruct; 
+import jakarta.annotation.PostConstruct;
+
 @Service
-public class RoleServiceImpl {
+@Order(1)
+public class RoleServiceImpl implements RoleService {
 
     @Autowired
     private RoleRepository roleRepository;
 
+    /**
+     * This method ensures that the default roles (admin, customer, delivery agent) are created 
+     * if they do not already exist in the database.
+     */
     @PostConstruct
     public void createRoles() {
-        if (roleRepository.existsById(RoleType.ADMIN)) {
-            return; 
+        // Check if roles already exist by their names
+        if (roleRepository.existsById("ROLE_ADMIN") && roleRepository.existsById("ROLE_CUSTOMER") && roleRepository.existsById("ROLE_DELIVERY_AGENT")) {
+            return; // Skip role creation if they already exist
         }
-        
-        for (RoleType roleType : RoleType.values()) {
-            Role role = new Role();
-            role.setRole(roleType);
 
-            switch (roleType) {
-                case ADMIN:
-                    role.setDescription("Administrator role with full access to all resources.");
-                    break;
-                case USER:
-                    role.setDescription("Regular user with limited access to basic features.");
-                    break;
-                case DELIVERY_AGENT:
-                    role.setDescription("Delivery agent responsible for delivering products.");
-                    break;
-               default:
-                    role.setDescription(roleType.name() + " role");
-                    break;
-            }
+        // Create the "ROLE_ADMIN" role
+        Role adminRole = new Role(); 
+        adminRole.setRole("ROLE_ADMIN");
+        adminRole.setDescription("Administrator role with full access to all resources.");
+        roleRepository.save(adminRole);
 
-            roleRepository.save(role);
-        }
+        // Create the "ROLE_CUSTOMER" role
+        Role customerRole = new Role();
+        customerRole.setRole("ROLE_CUSTOMER");
+        customerRole.setDescription("Regular customer with access to purchase and view orders.");
+        roleRepository.save(customerRole);
+
+        // Create the "ROLE_DELIVERY_AGENT" role
+        Role deliveryAgentRole = new Role();
+        deliveryAgentRole.setRole("ROLE_DELIVERY_AGENT");
+        deliveryAgentRole.setDescription("Delivery agent responsible for delivering products.");
+        roleRepository.save(deliveryAgentRole);
     }
 }
