@@ -7,29 +7,29 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "product_images")
+@Table(name = "profile_pictures")
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-public class ProductImage {
-	
+public class ProfilePicture {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "image_id")
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "picture_id")
+	private int id;
 
-    @Column(name = "image_url")
-    private String imageUrl;
+	@Column(name = "image_url")
+	private String imageUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", unique = true)
+	private User user;
+
 }

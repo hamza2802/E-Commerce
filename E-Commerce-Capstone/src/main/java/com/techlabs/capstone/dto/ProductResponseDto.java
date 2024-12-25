@@ -12,17 +12,11 @@ import lombok.RequiredArgsConstructor;
 public class ProductResponseDto {
 
 	private int productId;
-
 	private String productName;
-
+	private String category;
+	private int stock;
 	private String productDescription;
-
 	private Double productDiscountedPrice;
-
 	private Double productActualPrice;
-	
-	private String category;  
-	
-    private List<String> imageLinks; 
 
 }

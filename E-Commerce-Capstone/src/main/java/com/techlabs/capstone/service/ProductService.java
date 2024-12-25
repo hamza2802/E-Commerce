@@ -7,6 +7,7 @@ public interface ProductService {
 
 	ProductResponseDto addProduct(ProductRequestDto productRequestDto);
 
-	ProductResponseDto updateProduct(int productId, ProductRequestDto productRequestDto);
+	ProductResponseDto editProduct(int productId, ProductRequestDto productRequestDto);
+
 
 }

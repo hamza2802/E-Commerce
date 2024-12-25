@@ -32,16 +32,10 @@ public class CustomerController {
     public ResponseEntity<CustomerDetailsResponseDto> editCustomerDetails(
             @RequestBody CustomerDetailsRequestDto customerDetailsRequestDto) {
 
-        // Extract email from request DTO (as email is part of request body)
-        String email = customerDetailsRequestDto.getEmail();
-
-        // Call the service to edit customer details by email
-        CustomerDetailsResponseDto updatedCustomerDetails = customerDetailsService.editCustomerDetails(email, customerDetailsRequestDto);
+        CustomerDetailsResponseDto updatedCustomerDetails = customerDetailsService.editCustomerDetails(customerDetailsRequestDto);
         
-        // Return the updated customer details as a response
         return ResponseEntity.ok(updatedCustomerDetails);
     }
-    
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")

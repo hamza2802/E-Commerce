@@ -4,10 +4,8 @@ import java.io.IOException;
 
 import org.springframework.web.multipart.MultipartFile;
 
-public interface ProductImageService {
+public interface ProfilePictureService {
+    
 
-
-	void uploadImages(int productId, MultipartFile[] file) throws IOException;
-
-
+	void uploadProfilePicture(MultipartFile file) throws IOException;
 }

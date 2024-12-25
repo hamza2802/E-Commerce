@@ -9,9 +9,8 @@ import com.techlabs.capstone.entity.ProductImage;
 public interface ProductImageRepository extends JpaRepository<ProductImage, Integer>{
 
 	
-	Optional<ProductImage> findByProduct_ProductIdAndImageLink(int productId, String imageLink);
+	Optional<ProductImage> findByProduct_ProductIdAndImageUrl(int productId, String imageUrl);
 
-	void deleteAllByProduct_ProductId(int productId);
 	
 
 }
