@@ -7,12 +7,9 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-public class UserResponseDto {
+public class CartItemRequestDto {
 
-	private int userId;
-	private String firstname;
-	private String lastname;
-	private String email;
-	private String role;
-
+    private int productId;
+    private int quantity;
+    
 }

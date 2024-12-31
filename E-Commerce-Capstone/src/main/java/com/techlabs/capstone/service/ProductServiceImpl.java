@@ -1,51 +1,106 @@
 package com.techlabs.capstone.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.techlabs.capstone.dto.ProductRequestDto;
 import com.techlabs.capstone.dto.ProductResponseDto;
 import com.techlabs.capstone.entity.Product;
+import com.techlabs.capstone.entity.ProductImage;
+import com.techlabs.capstone.repository.ProductImageRepository;
 import com.techlabs.capstone.repository.ProductRepository;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
 	@Autowired
+	private Cloudinary cloudinary;
+
+	@Autowired
 	private ProductRepository productRepository;
 
 	@Autowired
-	private ModelMapper modelMapper;
+	private ProductImageRepository productImageRepository;
 
-	@Override
-	public ProductResponseDto addProduct(ProductRequestDto productRequestDTO) {
+    @Autowired
+    private ModelMapper modelMapper;
 
-		Product product = modelMapper.map(productRequestDTO, Product.class);
+    @Override
+    public ProductResponseDto addProductWithImages(ProductRequestDto productRequestDto, MultipartFile[] files) throws IOException {
+        if (files == null || files.length == 0) {
+            throw new IllegalArgumentException("At least one image must be uploaded.");
+        }
 
-		Product savedProduct = productRepository.save(product);
+        Product product = modelMapper.map(productRequestDto, Product.class);
+        Product savedProduct = productRepository.save(product);
 
-		return modelMapper.map(savedProduct, ProductResponseDto.class);
-	}
+        List<String> imageUrls = new ArrayList<>();
 
-	@Override
-	public ProductResponseDto editProduct(int productId, ProductRequestDto productRequestDto) {
-		// Fetch the product by ID
-		Product existingProduct = productRepository.findById(productId)
-				.orElseThrow(() -> new RuntimeException("Product not found"));
+        for (MultipartFile file : files) {
+            try {
+                var uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+                String imageUrl = (String) uploadResult.get("url");
+                imageUrls.add(imageUrl);
 
-		// Update the product with the new data
-		existingProduct.setProductName(productRequestDto.getProductName());
-		existingProduct.setCategory(productRequestDto.getCategory());
-		existingProduct.setStock(productRequestDto.getStock());
-		existingProduct.setProductDescription(productRequestDto.getProductDescription());
-		existingProduct.setProductDiscountedPrice(productRequestDto.getProductDiscountedPrice());
-		existingProduct.setProductActualPrice(productRequestDto.getProductActualPrice());
+                ProductImage productImage = new ProductImage();
+                productImage.setImageUrl(imageUrl);
+                productImage.setProduct(savedProduct);
+                productImageRepository.save(productImage);
+            } catch (IOException e) {
+                throw new RuntimeException("Error uploading image: " + e.getMessage(), e);
+            }
+        }
 
-		// Save the updated product
-		Product updatedProduct = productRepository.save(existingProduct);
+        ProductResponseDto productResponseDto = modelMapper.map(savedProduct, ProductResponseDto.class);
+        productResponseDto.setImageUrls(imageUrls);
 
-		// Return the updated product as a response
-		return modelMapper.map(updatedProduct, ProductResponseDto.class);
-	}
+        return productResponseDto;
+    }
+
+
+
+    @Override
+    public ProductResponseDto editProduct(int productId, ProductRequestDto productRequestDto) {
+        Product existingProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        existingProduct.setProductName(productRequestDto.getProductName());
+        existingProduct.setCategory(productRequestDto.getCategory());
+        existingProduct.setStock(productRequestDto.getStock());
+        existingProduct.setProductDescription(productRequestDto.getProductDescription());
+        existingProduct.setProductDiscountedPrice(productRequestDto.getProductDiscountedPrice());
+        existingProduct.setProductActualPrice(productRequestDto.getProductActualPrice());
+        Product updatedProduct = productRepository.save(existingProduct);
+
+        return modelMapper.map(updatedProduct, ProductResponseDto.class);
+    }
+
+    @Override
+    public List<ProductResponseDto> getAllProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);  
+        Page<Product> productPage = productRepository.findAll(pageable);  
+
+        return productPage.stream()
+                .map(product -> modelMapper.map(product, ProductResponseDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ProductResponseDto getProductById(int productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));  // Find the product by ID or throw exception if not found
+        return modelMapper.map(product, ProductResponseDto.class);  // Convert the product to a ProductResponseDto and return it
+    }
 }

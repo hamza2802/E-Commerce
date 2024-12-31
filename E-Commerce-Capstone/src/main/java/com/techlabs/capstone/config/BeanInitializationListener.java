@@ -19,10 +19,10 @@ public class BeanInitializationListener implements ApplicationListener<ContextRe
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        // First, create the roles
+       
         roleService.createRoles();
-
-        // Then, create the admin user
+        
         adminService.initAdminUser();
     }
 }
+ 
