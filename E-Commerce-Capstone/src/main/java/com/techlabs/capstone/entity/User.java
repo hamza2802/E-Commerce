@@ -53,8 +53,8 @@ public class User {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private AdminDetails adminDetails;
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-    private Cart cart;
+//    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+//    private Cart cart;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private ProfilePicture profilePicture;

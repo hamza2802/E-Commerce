@@ -37,10 +37,10 @@ public class Order {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @Column(name = "total_amount", precision = 10, scale = 2)
+    @Column(name = "total_amount")
     private double totalAmount;
 
     @Enumerated(EnumType.STRING)

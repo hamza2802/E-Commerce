@@ -37,10 +37,10 @@ public class OrderItem {
     @Column(name = "quantity")
     private int quantity;
 
-    @Column(name = "price", precision = 10, scale = 2)
+    @Column(name = "price")
     private double price;
 
-    @Column(name = "total_price", precision = 10, scale = 2)
+    @Column(name = "total_price")
     private double totalPrice;
 
 }

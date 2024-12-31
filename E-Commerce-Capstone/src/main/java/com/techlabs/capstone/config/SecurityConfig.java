@@ -28,10 +28,7 @@ public class SecurityConfig {
 	private final JwtAuthenticationFilter authenticationFilter;
 	private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
-	@Bean
-	public static PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+	
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {

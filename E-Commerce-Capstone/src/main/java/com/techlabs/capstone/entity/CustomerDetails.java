@@ -44,7 +44,7 @@ public class CustomerDetails {
 	private String city;
 
 	@Column(name = "State")
-	private String State;
+	private String state;
 
 	@Column(name = "pincode")
 	private int pincode;
