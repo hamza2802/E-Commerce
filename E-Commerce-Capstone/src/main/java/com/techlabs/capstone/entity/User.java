@@ -38,7 +38,7 @@ public class User {
     @Column(name = "isActive")
     private boolean isActive;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", 
                joinColumns = @JoinColumn(name = "user_id"), 
                inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -53,8 +53,8 @@ public class User {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private AdminDetails adminDetails;
 
-//    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-//    private Cart cart;
+   @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+   private Cart cart;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private ProfilePicture profilePicture;

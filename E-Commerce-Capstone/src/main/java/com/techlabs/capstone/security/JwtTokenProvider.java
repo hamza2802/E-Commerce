@@ -21,38 +21,28 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtTokenProvider {
-
 	@Value("${app.jwt-secret}")
 	private String jwtSecret;
-
 	@Value("${app.jwt-expiration-milliseconds}")
 	private long jwtExpirationDate;
 
 	public String generateToken(Authentication authentication) {
-
 		String email = authentication.getName();
-
 		Date currentDate = new Date();
-
 		Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
-
 		String token = Jwts.builder().claims().subject(email).issuedAt(new Date(System.currentTimeMillis()))
 				.expiration(expireDate).and().signWith(key()).claim("role", authentication.getAuthorities()).compact();
-		
 		System.out.println(token);
 		return token;
 	}
 
 	private SecretKey key() {
-
 		return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
 	}
 
 	public String getEmail(String token) {
 		Claims claims = Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload();
-
 		String email = claims.getSubject();
-
 		return email;
 	}
 
