@@ -48,8 +48,14 @@ public class CustomerController {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<CustomerDetailsResponseDto> customers = customerService.getAllCustomers(pageRequest);
 
-        // Return the paginated list of customers wrapped in ResponseEntity
         return ResponseEntity.ok(customers);
+    }
+    
+    @GetMapping("/details")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<CustomerDetailsResponseDto> getCustomerDetailsByEmail() {
+        CustomerDetailsResponseDto customerDetailsResponseDto = customerDetailsService.getCustomerByEmail();
+        return ResponseEntity.ok(customerDetailsResponseDto);
     }
     
     

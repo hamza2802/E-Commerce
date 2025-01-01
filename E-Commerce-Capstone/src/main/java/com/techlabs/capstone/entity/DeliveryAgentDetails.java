@@ -24,7 +24,7 @@ public class DeliveryAgentDetails {
     private String userLastName;
     
     @Column(name="contactnumber")
-    private long contactNumber;
+    private String contactNumber;
 
     @Column(name = "vehicle_type")
     private String vehicleType;

@@ -12,7 +12,7 @@ public class DeliveryAgentResponseDto {
     private String email;
     private String firstname;
     private String lastname;
-    private long contactNumber;
+    private String contactNumber;
     private String vehicleType;
     private String vehicleNumber;
     private String deliveryZone;

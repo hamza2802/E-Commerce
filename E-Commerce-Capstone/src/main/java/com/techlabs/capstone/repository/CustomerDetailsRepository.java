@@ -19,4 +19,7 @@ public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails
 	  Page<CustomerDetails> findByUserIsActiveTrue(Pageable pageable);
 
 
+	 Optional<CustomerDetails> findByUserEmail(String email);
+
+
 }

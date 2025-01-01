@@ -1,7 +1,5 @@
 package com.techlabs.capstone.entity;
 
-import org.springframework.stereotype.Repository;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -33,7 +31,7 @@ public class OrderItem {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
-
+ 
     @Column(name = "quantity")
     private int quantity;
 

@@ -7,14 +7,13 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Data
-public class DeliveryAgentRequestDto {
-
-    private String email;
-    private String password;
-    private String firstName;
+public class DeliveryAgentDetailsRequestDto {
+	
+	private String firstName;
     private String lastName;
     private String contactNumber;
     private String vehicleType;
     private String vehicleNumber;
     private String deliveryZone;
+
 }

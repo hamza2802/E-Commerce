@@ -5,9 +5,10 @@ import com.techlabs.capstone.dto.CustomerDetailsResponseDto;
 
 public interface CustomerDetailsService {
 
-//	CustomerDetailsResponseDto editCustomerDetails(String email, CustomerDetailsRequestDto customerDetailsRequestDto);
 
 	CustomerDetailsResponseDto editCustomerDetails(CustomerDetailsRequestDto customerDetailsRequestDto);
+
+	CustomerDetailsResponseDto getCustomerByEmail();
 
 
 }

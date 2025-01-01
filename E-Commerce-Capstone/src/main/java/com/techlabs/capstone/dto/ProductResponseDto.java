@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class ProductResponseDto {
 
+	private int productId;
 	private String productName;
 	private String category;
 	private int stock;

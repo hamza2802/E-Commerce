@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.techlabs.capstone.dto.DeliveryAgentDetailsRequestDto;
+import com.techlabs.capstone.dto.DeliveryAgentDetailsRequestDto;
 import com.techlabs.capstone.dto.DeliveryAgentRequestDto;
 import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
 import com.techlabs.capstone.entity.DeliveryAgentDetails;
@@ -35,32 +37,27 @@ public class DeliveryAgentServiceImpl implements DeliveryAgentService {
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
-	private ModelMapper modelMapper; // Inject ModelMapper
+	private ModelMapper modelMapper; 
 
 	@Override
 	public DeliveryAgentResponseDto addDeliveryAgent(DeliveryAgentRequestDto requestDTO) {
-		// Check if the email already exists in the User repository
 		if (userRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
 			throw new RuntimeException("User with this email already exists.");
 		}
 
-		// Create User object (email and password)
 		User user = new User();
 		user.setEmail(requestDTO.getEmail());
-		user.setPassword(passwordEncoder.encode(requestDTO.getPassword())); // Encode the password
+		user.setPassword(passwordEncoder.encode(requestDTO.getPassword())); 
 		user.setActive(true);
 
-		// Assign the "ROLE_DELIVERY_AGENT" role to the user
 		List<Role> roles = roleRepository.findByRole("ROLE_DELIVERY_AGENT");
 		if (roles.isEmpty()) {
 			throw new RuntimeException("Role 'ROLE_DELIVERY_AGENT' not found.");
 		}
-		user.setRoles(roles); // Assign the role(s)
+		user.setRoles(roles); 
 
-		// Save the User entity
 		userRepository.save(user);
 
-		// Create DeliveryAgentDetails object and associate it with the user
 		DeliveryAgentDetails deliveryAgentDetails = new DeliveryAgentDetails();
 		deliveryAgentDetails.setUserFirstName(requestDTO.getFirstName());
 		deliveryAgentDetails.setUserLastName(requestDTO.getLastName());
@@ -68,17 +65,13 @@ public class DeliveryAgentServiceImpl implements DeliveryAgentService {
 		deliveryAgentDetails.setVehicleType(requestDTO.getVehicleType());
 		deliveryAgentDetails.setVehicleNumber(requestDTO.getVehicleNumber());
 		deliveryAgentDetails.setDeliveryZone(requestDTO.getDeliveryZone());
-		deliveryAgentDetails.setUser(user); // Link to the User entity
+		deliveryAgentDetails.setUser(user);
 
-		// Save the DeliveryAgentDetails entity
 		deliveryAgentDetailsRepository.save(deliveryAgentDetails);
 
-		// Use ModelMapper to map the User and DeliveryAgentDetails to a
-		// DeliveryAgentResponseDto
 		DeliveryAgentResponseDto responseDTO = modelMapper.map(deliveryAgentDetails, DeliveryAgentResponseDto.class);
 		responseDTO.setEmail(user.getEmail());
 
-		// Return the mapped response DTO
 		return responseDTO;
 	}
 
@@ -97,5 +90,28 @@ public class DeliveryAgentServiceImpl implements DeliveryAgentService {
 			return deliveryAgentResponseDto;
 		});
 	}
+	
+	@Override
+	public DeliveryAgentResponseDto updateDeliveryAgent(int deliveryAgentId, DeliveryAgentDetailsRequestDto requestDTO) {
+	    
+	    DeliveryAgentDetails deliveryAgentDetails = deliveryAgentDetailsRepository
+	            .findById(deliveryAgentId)
+	            .orElseThrow(() -> new RuntimeException("Delivery agent not found"));
+
+	    deliveryAgentDetails.setUserFirstName(requestDTO.getFirstName());
+	    deliveryAgentDetails.setUserLastName(requestDTO.getLastName());
+	    deliveryAgentDetails.setContactNumber(requestDTO.getContactNumber());
+	    deliveryAgentDetails.setVehicleType(requestDTO.getVehicleType());
+	    deliveryAgentDetails.setVehicleNumber(requestDTO.getVehicleNumber());
+	    deliveryAgentDetails.setDeliveryZone(requestDTO.getDeliveryZone());
+
+	    deliveryAgentDetailsRepository.save(deliveryAgentDetails);
+
+	    DeliveryAgentResponseDto responseDTO = modelMapper.map(deliveryAgentDetails, DeliveryAgentResponseDto.class);
+	    responseDTO.setEmail(deliveryAgentDetails.getUser().getEmail()); // Keep original email
+
+	    return responseDTO;
+	}
+
 
 }

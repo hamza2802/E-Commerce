@@ -25,14 +25,14 @@ import com.techlabs.capstone.repository.ProductRepository;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-	@Autowired
-	private Cloudinary cloudinary;
+    @Autowired
+    private Cloudinary cloudinary;
 
-	@Autowired
-	private ProductRepository productRepository;
+    @Autowired
+    private ProductRepository productRepository;
 
-	@Autowired
-	private ProductImageRepository productImageRepository;
+    @Autowired
+    private ProductImageRepository productImageRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -69,8 +69,6 @@ public class ProductServiceImpl implements ProductService {
         return productResponseDto;
     }
 
-
-
     @Override
     public ProductResponseDto editProduct(int productId, ProductRequestDto productRequestDto) {
         Product existingProduct = productRepository.findById(productId)
@@ -87,20 +85,36 @@ public class ProductServiceImpl implements ProductService {
         return modelMapper.map(updatedProduct, ProductResponseDto.class);
     }
 
-    @Override
+    @Override	
     public List<ProductResponseDto> getAllProducts(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);  
-        Page<Product> productPage = productRepository.findAll(pageable);  
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productRepository.findAll(pageable);
 
-        return productPage.stream()
-                .map(product -> modelMapper.map(product, ProductResponseDto.class))
+        List<ProductResponseDto> productResponseDtos = productPage.stream()
+                .map(product -> {
+                    ProductResponseDto productResponseDto = modelMapper.map(product, ProductResponseDto.class);
+                    List<String> imageUrls = product.getProductImages().stream()
+                            .map(ProductImage::getImageUrl)
+                            .collect(Collectors.toList());
+                    productResponseDto.setImageUrls(imageUrls);
+                    return productResponseDto;
+                })
                 .collect(Collectors.toList());
-    }
+
+        return productResponseDtos;
+    }		
 
     @Override
     public ProductResponseDto getProductById(int productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));  // Find the product by ID or throw exception if not found
-        return modelMapper.map(product, ProductResponseDto.class);  // Convert the product to a ProductResponseDto and return it
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        ProductResponseDto productResponseDto = modelMapper.map(product, ProductResponseDto.class);
+        List<String> imageUrls = product.getProductImages().stream()
+                .map(ProductImage::getImageUrl)
+                .collect(Collectors.toList());
+        productResponseDto.setImageUrls(imageUrls);
+
+        return productResponseDto;
     }
 }

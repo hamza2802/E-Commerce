@@ -9,4 +9,5 @@ public interface CustomerService {
 
 	Page<CustomerDetailsResponseDto> getAllCustomers(Pageable pageable);
 
+
 }

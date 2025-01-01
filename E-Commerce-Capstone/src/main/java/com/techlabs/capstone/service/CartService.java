@@ -1,18 +1,18 @@
 package com.techlabs.capstone.service;
 
 import com.techlabs.capstone.dto.CartItemRequestDto;
-import com.techlabs.capstone.entity.Cart;
-import com.techlabs.capstone.entity.CartItem;
+import com.techlabs.capstone.dto.CartItemResponseDto;
+import com.techlabs.capstone.dto.CartResponseDto;
 
 public interface CartService {
 
-    Cart getCart();
+    CartResponseDto getCart();
 
     void removeCartItemFromCart(int cartItemId);
 
-    CartItem updateCartItemQuantity(int cartItemId, CartItemRequestDto cartItemRequestDto);
-
     double getCartTotalAmount();
 
-    CartItem addCartItemToCart(CartItemRequestDto cartItemRequestDto);
+    CartItemResponseDto addCartItemToCart(CartItemRequestDto cartItemRequestDto);
+
+	void updateCartItemQuantity(int cartItemId, int quantity);
 }
