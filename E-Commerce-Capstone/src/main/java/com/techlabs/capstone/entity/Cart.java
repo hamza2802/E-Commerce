@@ -20,7 +20,7 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 
     @OneToOne
@@ -29,6 +29,11 @@ public class Cart {
 
     @Column(name = "total_amount")
     private double totalAmount;
+    
+    public void clearCart() {
+        this.cartItems.clear();
+        this.totalAmount = 0.0;
+    }
 
     public void recalculateTotalAmount() {
         this.totalAmount = cartItems.stream()

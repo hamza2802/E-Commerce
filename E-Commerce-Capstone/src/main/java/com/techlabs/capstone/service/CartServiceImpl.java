@@ -116,7 +116,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void updateCartItemQuantity(int cartItemId, int quantity) {
-        // Fetch the Cart from the user's session
+     
         Cart cart = getCartEntity();
 
         // Find the CartItem by its ID
@@ -168,4 +168,6 @@ public class CartServiceImpl implements CartService {
         }
         return cartOptional.get();
     }
+
+	
 }

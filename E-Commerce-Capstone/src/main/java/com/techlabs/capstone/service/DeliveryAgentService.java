@@ -14,4 +14,6 @@ public interface DeliveryAgentService {
 
 	DeliveryAgentResponseDto updateDeliveryAgent(int deliveryAgentId, DeliveryAgentDetailsRequestDto requestDTO);
 
+	String deleteDeliveryAgent(int deliveryAgentId);
+
 }

@@ -40,5 +40,13 @@ public class OrderItem {
 
     @Column(name = "total_price")
     private double totalPrice;
+    
+    public OrderItem(Order order, Product product, int quantity, double price, double totalPrice) {
+        this.order = order;
+        this.product = product;
+        this.quantity = quantity;
+        this.price = price;
+        this.totalPrice = totalPrice;
+    }
 
 }

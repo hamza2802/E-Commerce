@@ -112,6 +112,21 @@ public class DeliveryAgentServiceImpl implements DeliveryAgentService {
 
 	    return responseDTO;
 	}
+	
+	 @Override
+	    public String deleteDeliveryAgent(int deliveryAgentId) {
+	        DeliveryAgentDetails deliveryAgentDetails = deliveryAgentDetailsRepository
+	                .findById(deliveryAgentId)
+	                .orElseThrow(() -> new RuntimeException("Delivery agent not found"));
+
+	        User user = deliveryAgentDetails.getUser();
+
+	        user.setActive(false);
+
+	        userRepository.save(user);
+
+	        return "Delivery agent with ID " + deliveryAgentId + " has been deactivated.";
+	    }
 
 
 }

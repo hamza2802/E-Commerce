@@ -2,5 +2,5 @@ package com.techlabs.capstone.entity;
 
 public enum OrderStatus {
 
-	PENDING, SHIPPED, DELIVERED
+	PLACED, OUT_FOR_DELIVERY, DELIVERED
 }

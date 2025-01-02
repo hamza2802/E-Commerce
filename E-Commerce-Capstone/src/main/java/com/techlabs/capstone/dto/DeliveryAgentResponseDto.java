@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class DeliveryAgentResponseDto {
 	
+	private int id;
     private String email;
     private String firstname;
     private String lastname;
