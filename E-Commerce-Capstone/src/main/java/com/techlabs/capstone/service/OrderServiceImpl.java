@@ -273,7 +273,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderId(int orderId) {
-        // Step 1: Fetch the order by orderId
+        
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
             throw new RuntimeException("Order not found");
@@ -281,19 +281,15 @@ public class OrderServiceImpl implements OrderService {
         
         Order order = orderOptional.get();
 
-        // Step 2: Get the customer's city (location)
-        String customerCity = order.getUser().getCustomerDetails().getCity(); // Adjust as needed
+        String customerCity = order.getUser().getCustomerDetails().getCity(); 
 
-        // Step 3: Fetch all delivery agents whose deliveryZone matches the customer's city
         List<DeliveryAgentDetails> deliveryAgentDetailsList = deliveryAgentDetailsRepository
                 .findByDeliveryZoneIgnoreCase(customerCity);
 
-        // Step 4: Map the list of DeliveryAgentDetails to DeliveryAgentResponseDto
         List<DeliveryAgentResponseDto> deliveryAgentResponseDtos = deliveryAgentDetailsList.stream()
                 .map(deliveryAgentDetails -> modelMapper.map(deliveryAgentDetails, DeliveryAgentResponseDto.class))
                 .collect(Collectors.toList());
 
-        // Step 5: Return the list of matching delivery agents
         return deliveryAgentResponseDtos;
     }
 

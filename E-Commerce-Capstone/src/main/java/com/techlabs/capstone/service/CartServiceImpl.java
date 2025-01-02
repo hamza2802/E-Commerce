@@ -45,17 +45,21 @@ public class CartServiceImpl implements CartService {
         User user = userOptional.get();
 
         Optional<Cart> cartOptional = cartRepository.findByUser(user);
+        
+        Cart cart;
         if (cartOptional.isEmpty()) {
-            throw new RuntimeException("Cart not found");
+            cart = new Cart();
+            cart.setUser(user);
+            cartRepository.save(cart);
+        } else {
+            cart = cartOptional.get();
         }
-        Cart cart = cartOptional.get();
 
-        // Convert CartItems to CartItemResponseDto
         List<CartItemResponseDto> cartItems = cart.getCartItems().stream()
             .map(cartItem -> {
                 Product product = cartItem.getProduct();
                 return new CartItemResponseDto(
-                	cartItem.getId(),
+                    cartItem.getId(),
                     product.getProductId(),
                     product.getProductName(),
                     product.getProductDiscountedPrice(),
@@ -65,7 +69,6 @@ public class CartServiceImpl implements CartService {
             })
             .collect(Collectors.toList());
 
-        // Return CartResponseDto
         return new CartResponseDto(cart.getId(), cart.getTotalAmount(), cartItems);
     }
 
@@ -87,9 +90,8 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.save(cartItem);
         cartRepository.save(cart);
 
-        // Return the CartItemResponseDto
         return new CartItemResponseDto(
-        		cartItem.getId(),
+            cartItem.getId(),
             product.getProductId(),
             product.getProductName(),
             product.getProductDiscountedPrice(),
@@ -116,34 +118,25 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void updateCartItemQuantity(int cartItemId, int quantity) {
-     
         Cart cart = getCartEntity();
 
-        // Find the CartItem by its ID
         Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
 
-        // If the CartItem is found, update its quantity and total price
         if (cartItemOptional.isPresent()) {
             CartItem cartItem = cartItemOptional.get();
             
-            // Set the new quantity
             cartItem.setQuantity(quantity);
-            
-            // Recalculate the total price based on the updated quantity
             double updatedTotalPrice = cartItem.getPrice() * quantity;
             cartItem.setTotalPrice(updatedTotalPrice);
 
-            // Recalculate the total amount for the entire cart after the update
             cart.recalculateTotalAmount();
 
-            // Save the updated CartItem and Cart back to the database
             cartItemRepository.save(cartItem);
             cartRepository.save(cart);
         } else {
             throw new RuntimeException("Cart item not found");
         }
     }
-
 
     @Override
     public double getCartTotalAmount() {
@@ -155,7 +148,7 @@ public class CartServiceImpl implements CartService {
     private Cart getCartEntity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        
+
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
             throw new RuntimeException("User not found");
@@ -163,11 +156,14 @@ public class CartServiceImpl implements CartService {
         User user = userOptional.get();
 
         Optional<Cart> cartOptional = cartRepository.findByUser(user);
+        
         if (cartOptional.isEmpty()) {
-            throw new RuntimeException("Cart not found");
+            Cart newCart = new Cart();
+            newCart.setUser(user);
+            cartRepository.save(newCart);  
+            return newCart;
         }
+        
         return cartOptional.get();
     }
-
-	
 }
