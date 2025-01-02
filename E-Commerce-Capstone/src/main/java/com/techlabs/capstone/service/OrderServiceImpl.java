@@ -13,10 +13,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.techlabs.capstone.dto.CustomerDetailsResponseDto;
 import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
 import com.techlabs.capstone.dto.OrderItemResponseDto;
 import com.techlabs.capstone.dto.OrderResponseDto;
 import com.techlabs.capstone.entity.Cart;
+import com.techlabs.capstone.entity.DeliveryAgentDetails;
 import com.techlabs.capstone.entity.Order;
 import com.techlabs.capstone.entity.OrderItem;
 import com.techlabs.capstone.entity.OrderStatus;
@@ -41,7 +43,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private UserRepository userRepository;
-    
 
     @Autowired
     private DeliveryAgentDetailsRepository deliveryAgentDetailsRepository;
@@ -51,37 +52,30 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDto createOrder() {
-        // Get the current user from the authentication context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        // Find the user by email
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
             throw new RuntimeException("User not found");
         }
         User user = userOptional.get();
 
-        // Find the user's cart
         Optional<Cart> cartOptional = cartRepository.findByUser(user);
         if (cartOptional.isEmpty()) {
             throw new RuntimeException("Cart not found");
         }
         Cart cart = cartOptional.get();
 
-        // Create the order from the cart
         Order order = new Order();
         order.setUser(user);
         order.setTotalAmount(cart.getTotalAmount());
         order.setStatus(OrderStatus.PLACED);
         order.setOrderDate(new java.util.Date());
+        order.setDeliveryAgent(null);
 
-        order.setDeliveryAgent(null);  // You want to keep this null for now
-
-        // Save the order to the database
         orderRepository.save(order);
 
-        // Create order items from the cart items
         List<OrderItem> orderItems = cart.getCartItems().stream()
                 .map(cartItem -> {
                     OrderItem orderItem = new OrderItem();
@@ -94,14 +88,11 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .collect(Collectors.toList());
 
-        // Save the order items
         orderItemRepository.saveAll(orderItems);
 
-        // Clear the cart after order is created (clear items, don't delete the cart itself)
-        cart.clearCart();  // Removes all cart items but keeps the cart entity
-        cartRepository.save(cart);  // Save updated cart with no items
+        cart.clearCart();
+        cartRepository.save(cart);
 
-        // Map the order and order items to DTO for response
         OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
         List<OrderItemResponseDto> orderItemDtos = orderItems.stream()
                 .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
@@ -109,26 +100,29 @@ public class OrderServiceImpl implements OrderService {
 
         orderResponseDto.setOrderItems(orderItemDtos);
 
-        // Handle the null deliveryAgent case
         if (order.getDeliveryAgent() != null) {
             orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
         } else {
-            orderResponseDto.setDeliveryAgent(null);  // Explicitly set to null if no agent is assigned
+            orderResponseDto.setDeliveryAgent(null);
+        }
+
+        if (user.getCustomerDetails() != null) {
+            CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(user.getCustomerDetails(), CustomerDetailsResponseDto.class);
+            customerDetailsResponseDto.setEmail(user.getEmail());
+            orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+        } else {
+            orderResponseDto.setCustomerDetails(null);
         }
 
         return orderResponseDto;
     }
 
-
     @Override
     public List<OrderResponseDto> getAllPlacedOrders(int page, int size) {
-        // Set up pagination
         Pageable pageable = PageRequest.of(page, size);
 
-        // Retrieve the orders with "PLACED" status
         Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.PLACED, pageable);
 
-        // Map the orders and order items to DTOs
         List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
                 .map(order -> {
                     OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
@@ -138,11 +132,18 @@ public class OrderServiceImpl implements OrderService {
 
                     orderResponseDto.setOrderItems(orderItemDtos);
 
-                    // Handle the null deliveryAgent case
                     if (order.getDeliveryAgent() != null) {
                         orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
                     } else {
-                        orderResponseDto.setDeliveryAgent(null);  // Explicitly set null if no agent
+                        orderResponseDto.setDeliveryAgent(null);
+                    }
+
+                    if (order.getUser().getCustomerDetails() != null) {
+                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+                    } else {
+                        orderResponseDto.setCustomerDetails(null);
                     }
 
                     return orderResponseDto;
@@ -151,16 +152,13 @@ public class OrderServiceImpl implements OrderService {
 
         return orderResponseDtos;
     }
-    
+
     @Override
     public List<OrderResponseDto> getAllOutForDeliveryOrders(int page, int size) {
-        // Set up pagination
         Pageable pageable = PageRequest.of(page, size);
 
-        // Retrieve the orders with "SHIPPED" status
         Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.OUT_FOR_DELIVERY, pageable);
 
-        // Map the orders and order items to DTOs
         List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
                 .map(order -> {
                     OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
@@ -170,11 +168,18 @@ public class OrderServiceImpl implements OrderService {
 
                     orderResponseDto.setOrderItems(orderItemDtos);
 
-                    // Handle the null deliveryAgent case
                     if (order.getDeliveryAgent() != null) {
                         orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
                     } else {
-                        orderResponseDto.setDeliveryAgent(null);  // Explicitly set null if no agent
+                        orderResponseDto.setDeliveryAgent(null);
+                    }
+
+                    if (order.getUser().getCustomerDetails() != null) {
+                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+                    } else {
+                        orderResponseDto.setCustomerDetails(null);
                     }
 
                     return orderResponseDto;
@@ -183,16 +188,13 @@ public class OrderServiceImpl implements OrderService {
 
         return orderResponseDtos;
     }
-    
+
     @Override
     public List<OrderResponseDto> getAllDeliveredOrders(int page, int size) {
-        // Set up pagination
         Pageable pageable = PageRequest.of(page, size);
 
-        // Retrieve the orders with "SHIPPED" status
         Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.DELIVERED, pageable);
 
-        // Map the orders and order items to DTOs
         List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
                 .map(order -> {
                     OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
@@ -202,11 +204,18 @@ public class OrderServiceImpl implements OrderService {
 
                     orderResponseDto.setOrderItems(orderItemDtos);
 
-                    // Handle the null deliveryAgent case
                     if (order.getDeliveryAgent() != null) {
                         orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
                     } else {
-                        orderResponseDto.setDeliveryAgent(null);  // Explicitly set null if no agent
+                        orderResponseDto.setDeliveryAgent(null);
+                    }
+
+                    if (order.getUser().getCustomerDetails() != null) {
+                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+                    } else {
+                        orderResponseDto.setCustomerDetails(null);
                     }
 
                     return orderResponseDto;
@@ -215,30 +224,22 @@ public class OrderServiceImpl implements OrderService {
 
         return orderResponseDtos;
     }
-
-
-
 
     @Override
     public List<OrderResponseDto> getOrdersByUser(int page, int size) {
-        // Get the current user from the authentication context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        // Find the user by email
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
             throw new RuntimeException("User not found");
         }
         User user = userOptional.get();
 
-        // Set up pagination
         Pageable pageable = PageRequest.of(page, size);
 
-        // Retrieve the orders for the logged-in user
         Page<Order> ordersPage = orderRepository.findByUser(user, pageable);
 
-        // Map the orders and order items to DTOs
         List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
                 .map(order -> {
                     OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
@@ -247,7 +248,20 @@ public class OrderServiceImpl implements OrderService {
                             .collect(Collectors.toList());
 
                     orderResponseDto.setOrderItems(orderItemDtos);
-                    orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
+
+                    if (order.getDeliveryAgent() != null) {
+                        orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
+                    } else {
+                        orderResponseDto.setDeliveryAgent(null);
+                    }
+
+                    if (order.getUser().getCustomerDetails() != null) {
+                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+                    } else {
+                        orderResponseDto.setCustomerDetails(null);
+                    }
 
                     return orderResponseDto;
                 })
@@ -255,11 +269,36 @@ public class OrderServiceImpl implements OrderService {
 
         return orderResponseDtos;
     }
+    
 
+    @Override
+    public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderId(int orderId) {
+        // Step 1: Fetch the order by orderId
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new RuntimeException("Order not found");
+        }
+        
+        Order order = orderOptional.get();
 
-	@Override
-	public OrderResponseDto getOrderById(int orderId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        // Step 2: Get the customer's city (location)
+        String customerCity = order.getUser().getCustomerDetails().getCity(); // Adjust as needed
+
+        // Step 3: Fetch all delivery agents whose deliveryZone matches the customer's city
+        List<DeliveryAgentDetails> deliveryAgentDetailsList = deliveryAgentDetailsRepository
+                .findByDeliveryZoneIgnoreCase(customerCity);
+
+        // Step 4: Map the list of DeliveryAgentDetails to DeliveryAgentResponseDto
+        List<DeliveryAgentResponseDto> deliveryAgentResponseDtos = deliveryAgentDetailsList.stream()
+                .map(deliveryAgentDetails -> modelMapper.map(deliveryAgentDetails, DeliveryAgentResponseDto.class))
+                .collect(Collectors.toList());
+
+        // Step 5: Return the list of matching delivery agents
+        return deliveryAgentResponseDtos;
+    }
+
+    @Override
+    public OrderResponseDto getOrderById(int orderId) {
+        return null;
+    }
 }

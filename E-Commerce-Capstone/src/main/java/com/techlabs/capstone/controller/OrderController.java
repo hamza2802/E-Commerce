@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
 import com.techlabs.capstone.dto.OrderResponseDto;
 import com.techlabs.capstone.service.OrderService;
 
@@ -65,5 +66,11 @@ public class OrderController {
     public ResponseEntity<List<OrderResponseDto>> getAllDeliveredOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         List<OrderResponseDto> orders = orderService.getAllDeliveredOrders(page, size);
         return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+    
+    @GetMapping("{orderId}/delivery-agents")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderId(@PathVariable int orderId) {
+        return orderService.getDeliveryAgentsByOrderId(orderId);
     }
 }

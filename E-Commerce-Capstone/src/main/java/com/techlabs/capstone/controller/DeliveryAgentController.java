@@ -60,7 +60,7 @@ public class DeliveryAgentController {
 	}
 	
 	 @DeleteMapping("/{deliveryAgentId}")
-	 @PreAuthorize("hasRole('ADMIN')")
+	 @PreAuthorize("hasRole('ADMIN')")    
 	    public ResponseEntity<String> deleteDeliveryAgent(@PathVariable int deliveryAgentId) {
 	        String message = deliveryAgentService.deleteDeliveryAgent(deliveryAgentId);
 	        return new ResponseEntity<>(message, HttpStatus.OK);

@@ -18,5 +18,6 @@ public class OrderResponseDto {
     private Date orderDate;
     private List<OrderItemResponseDto> orderItems;
     private DeliveryAgentResponseDto deliveryAgent;
+    private CustomerDetailsResponseDto customerDetails;
     
 }
