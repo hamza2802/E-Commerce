@@ -44,6 +44,10 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product product = modelMapper.map(productRequestDto, Product.class);
+
+        // Set isActive to true when adding a new product
+        product.setActive(true);
+
         Product savedProduct = productRepository.save(product);
 
         List<String> imageUrls = new ArrayList<>();
@@ -69,6 +73,7 @@ public class ProductServiceImpl implements ProductService {
         return productResponseDto;
     }
 
+
     @Override
     public ProductResponseDto editProduct(int productId, ProductRequestDto productRequestDto) {
         Product existingProduct = productRepository.findById(productId)
@@ -88,7 +93,8 @@ public class ProductServiceImpl implements ProductService {
     @Override	
     public List<ProductResponseDto> getAllProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> productPage = productRepository.findAll(pageable);
+        // Fetch only products with isActive = true
+        Page<Product> productPage = productRepository.findByIsActiveTrue(pageable);
 
         List<ProductResponseDto> productResponseDtos = productPage.stream()
                 .map(product -> {
@@ -102,27 +108,10 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
 
         return productResponseDtos;
-    }		
-    
-    @Override
-    public List<ProductResponseDto> getAllProductsByCategory(String category) {
-        // Fetch all products based on the category (no pagination)
-        List<Product> products = productRepository.findByCategory(category);
-
-        // Convert the products to ProductResponseDto and include image URLs
-        List<ProductResponseDto> productResponseDtos = products.stream()
-                .map(product -> {
-                    ProductResponseDto productResponseDto = modelMapper.map(product, ProductResponseDto.class);
-                    List<String> imageUrls = product.getProductImages().stream()
-                            .map(ProductImage::getImageUrl)
-                            .collect(Collectors.toList());
-                    productResponseDto.setImageUrls(imageUrls);
-                    return productResponseDto;
-                })
-                .collect(Collectors.toList());
-
-        return productResponseDtos;
     }
+
+
+   
 
     @Override
     public ProductResponseDto getProductById(int productId) {
@@ -139,24 +128,32 @@ public class ProductServiceImpl implements ProductService {
     }
     
     @Override
+    public List<ProductResponseDto> getAllProductsWithoutPagination() {
+        // Fetch all products with isActive = true
+        List<Product> products = productRepository.findByIsActiveTrue();
+
+        // Convert the products to ProductResponseDto and include image URLs
+        List<ProductResponseDto> productResponseDtos = products.stream()
+                .map(product -> {
+                    ProductResponseDto productResponseDto = modelMapper.map(product, ProductResponseDto.class);
+                    List<String> imageUrls = product.getProductImages().stream()
+                            .map(ProductImage::getImageUrl)
+                            .collect(Collectors.toList());
+                    productResponseDto.setImageUrls(imageUrls);
+                    return productResponseDto;
+                })
+                .collect(Collectors.toList());
+
+        return productResponseDtos;
+    }
+
+
+    @Override
     public void deleteProduct(int productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // Delete associated product images from the database and cloud storage
-        List<ProductImage> productImages = product.getProductImages();
-        for (ProductImage productImage : productImages) {
-            try {
-                // Delete image from Cloudinary
-                String imageUrl = productImage.getImageUrl();
-                cloudinary.uploader().destroy(imageUrl, ObjectUtils.emptyMap());
-            } catch (IOException e) {
-                throw new RuntimeException("Error deleting image from cloud: " + e.getMessage(), e);
-            }
-            productImageRepository.delete(productImage);
-        }
-
-        // Delete the product from the database
-        productRepository.delete(product);
+        product.setActive(false);
+        productRepository.save(product);
     }
 }

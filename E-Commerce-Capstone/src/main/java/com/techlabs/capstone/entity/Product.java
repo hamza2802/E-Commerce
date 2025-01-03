@@ -24,29 +24,32 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class Product {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_id")
-    private int productId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "product_id")
+	private int productId;
 
-    @Column(name = "product_name")
-    private String productName;
-    
-    @Column(name = "category")
-    private String category;
-    
-    @Column(name = "stock")
-    private int stock;
+	@Column(name = "product_name")
+	private String productName;
 
-    @Column(name = "description", length = 2000)
-    private String productDescription;
+	@Column(name = "category")
+	private String category;
 
-    @Column(name = "discounted_price")
-    private Double productDiscountedPrice;
+	@Column(name = "stock")
+	private int stock;
+	
+	@Column(name = "is_active")
+	private boolean isActive;
 
-    @Column(name = "actual_price")
-    private Double productActualPrice;
+	@Column(name = "description", length = 2000)
+	private String productDescription;
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<ProductImage> productImages;
+	@Column(name = "discounted_price")
+	private Double productDiscountedPrice;
+
+	@Column(name = "actual_price")
+	private Double productActualPrice;
+
+	@OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	private List<ProductImage> productImages;
 }

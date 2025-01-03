@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.techlabs.capstone.dto.CategoryRequestDto;
 import com.techlabs.capstone.dto.ProductRequestDto;
 import com.techlabs.capstone.dto.ProductResponseDto;
 import com.techlabs.capstone.service.ProductImageService;
@@ -71,6 +72,7 @@ public class ProductController {
 	}
 
 	@GetMapping
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<ProductResponseDto>> getAllProducts(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
 		List<ProductResponseDto> products = productService.getAllProducts(page, size);
@@ -98,17 +100,17 @@ public class ProductController {
 		productService.deleteProduct(productId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
+	
+	@GetMapping("/active")
+    public ResponseEntity<List<ProductResponseDto>> getAllProductsWithoutPagination() {
+        List<ProductResponseDto> activeProducts = productService.getAllProductsWithoutPagination();
 
-	@GetMapping("/category")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<List<ProductResponseDto>> getProductsByCategory(@RequestParam String category) {
-		List<ProductResponseDto> products = productService.getAllProductsByCategory(category);
+        if (activeProducts.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT); 
+        }
 
-		if (products.isEmpty()) {
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		}
+        return new ResponseEntity<>(activeProducts, HttpStatus.OK);  
+    }
 
-		return new ResponseEntity<>(products, HttpStatus.OK);
-	}
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.techlabs.capstone.dto.CategoryRequestDto;
 import com.techlabs.capstone.dto.ProductRequestDto;
 import com.techlabs.capstone.dto.ProductResponseDto;
 
@@ -21,7 +22,7 @@ public interface ProductService {
 
 	void deleteProduct(int productId);
 
-	List<ProductResponseDto> getAllProductsByCategory(String category);
+	List<ProductResponseDto> getAllProductsWithoutPagination();
 
 
 }
