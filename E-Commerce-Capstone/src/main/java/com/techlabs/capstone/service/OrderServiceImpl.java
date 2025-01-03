@@ -32,269 +32,301 @@ import com.techlabs.capstone.repository.UserRepository;
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+	@Autowired
+	private OrderRepository orderRepository;
 
-    @Autowired
-    private OrderItemRepository orderItemRepository;
+	@Autowired
+	private OrderItemRepository orderItemRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
+	@Autowired
+	private CartRepository cartRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private UserRepository userRepository;
 
-    @Autowired
-    private DeliveryAgentDetailsRepository deliveryAgentDetailsRepository;
+	@Autowired
+	private DeliveryAgentDetailsRepository deliveryAgentDetailsRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+	@Autowired
+	private ModelMapper modelMapper;
 
-    @Override
-    public OrderResponseDto createOrder() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+	@Override
+	public OrderResponseDto createOrder() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String email = authentication.getName();
 
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
-        User user = userOptional.get();
+		Optional<User> userOptional = userRepository.findByEmail(email);
+		if (userOptional.isEmpty()) {
+			throw new RuntimeException("User not found");
+		}
+		User user = userOptional.get();
 
-        Optional<Cart> cartOptional = cartRepository.findByUser(user);
-        if (cartOptional.isEmpty()) {
-            throw new RuntimeException("Cart not found");
-        }
-        Cart cart = cartOptional.get();
+		Optional<Cart> cartOptional = cartRepository.findByUser(user);
+		if (cartOptional.isEmpty()) {
+			throw new RuntimeException("Cart not found");
+		}
+		Cart cart = cartOptional.get();
 
-        Order order = new Order();
-        order.setUser(user);
-        order.setTotalAmount(cart.getTotalAmount());
-        order.setStatus(OrderStatus.PLACED);
-        order.setOrderDate(new java.util.Date());
-        order.setDeliveryAgent(null);
+		Order order = new Order();
+		order.setUser(user);
+		order.setTotalAmount(cart.getTotalAmount());
+		order.setStatus(OrderStatus.PLACED);
+		order.setOrderDate(new java.util.Date());
+		order.setDeliveryAgent(null);
 
-        orderRepository.save(order);
+		orderRepository.save(order);
 
-        List<OrderItem> orderItems = cart.getCartItems().stream()
-                .map(cartItem -> {
-                    OrderItem orderItem = new OrderItem();
-                    orderItem.setOrder(order);
-                    orderItem.setProduct(cartItem.getProduct());
-                    orderItem.setQuantity(cartItem.getQuantity());
-                    orderItem.setPrice(cartItem.getPrice());
-                    orderItem.setTotalPrice(cartItem.getTotalPrice());
-                    return orderItem;
-                })
-                .collect(Collectors.toList());
+		List<OrderItem> orderItems = cart.getCartItems().stream().map(cartItem -> {
+			OrderItem orderItem = new OrderItem();
+			orderItem.setOrder(order);
+			orderItem.setProduct(cartItem.getProduct());
+			orderItem.setQuantity(cartItem.getQuantity());
+			orderItem.setPrice(cartItem.getPrice());
+			orderItem.setTotalPrice(cartItem.getTotalPrice());
+			return orderItem;
+		}).collect(Collectors.toList());
 
-        orderItemRepository.saveAll(orderItems);
+		orderItemRepository.saveAll(orderItems);
 
-        cart.clearCart();
-        cartRepository.save(cart);
+		cart.clearCart();
+		cartRepository.save(cart);
 
-        OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
-        List<OrderItemResponseDto> orderItemDtos = orderItems.stream()
-                .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
-                .collect(Collectors.toList());
+		OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+		List<OrderItemResponseDto> orderItemDtos = orderItems.stream()
+				.map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class)).collect(Collectors.toList());
 
-        orderResponseDto.setOrderItems(orderItemDtos);
+		orderResponseDto.setOrderItems(orderItemDtos);
 
-        if (order.getDeliveryAgent() != null) {
-            orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
-        } else {
-            orderResponseDto.setDeliveryAgent(null);
-        }
+		if (order.getDeliveryAgent() != null) {
+			orderResponseDto
+					.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
+		} else {
+			orderResponseDto.setDeliveryAgent(null);
+		}
 
-        if (user.getCustomerDetails() != null) {
-            CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(user.getCustomerDetails(), CustomerDetailsResponseDto.class);
-            customerDetailsResponseDto.setEmail(user.getEmail());
-            orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
-        } else {
-            orderResponseDto.setCustomerDetails(null);
-        }
+		if (user.getCustomerDetails() != null) {
+			CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(user.getCustomerDetails(),
+					CustomerDetailsResponseDto.class);
+			customerDetailsResponseDto.setEmail(user.getEmail());
+			orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+		} else {
+			orderResponseDto.setCustomerDetails(null);
+		}
 
-        return orderResponseDto;
-    }
+		return orderResponseDto;
+	}
 
-    @Override
-    public List<OrderResponseDto> getAllPlacedOrders(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+	@Override
+	public List<OrderResponseDto> getAllPlacedOrders(int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
 
-        Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.PLACED, pageable);
+		Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.PLACED, pageable);
 
-        List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
-                .map(order -> {
-                    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
-                    List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
-                            .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
-                            .collect(Collectors.toList());
+		List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream().map(order -> {
+			OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+			List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
+					.map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
+					.collect(Collectors.toList());
 
-                    orderResponseDto.setOrderItems(orderItemDtos);
+			orderResponseDto.setOrderItems(orderItemDtos);
 
-                    if (order.getDeliveryAgent() != null) {
-                        orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
-                    } else {
-                        orderResponseDto.setDeliveryAgent(null);
-                    }
+			if (order.getDeliveryAgent() != null) {
+				orderResponseDto
+						.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
+			} else {
+				orderResponseDto.setDeliveryAgent(null);
+			}
 
-                    if (order.getUser().getCustomerDetails() != null) {
-                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
-                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
-                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
-                    } else {
-                        orderResponseDto.setCustomerDetails(null);
-                    }
+			if (order.getUser().getCustomerDetails() != null) {
+				CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+						.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+				customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+				orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+			} else {
+				orderResponseDto.setCustomerDetails(null);
+			}
 
-                    return orderResponseDto;
-                })
-                .collect(Collectors.toList());
+			return orderResponseDto;
+		}).collect(Collectors.toList());
 
-        return orderResponseDtos;
-    }
+		return orderResponseDtos;
+	}
 
-    @Override
-    public List<OrderResponseDto> getAllOutForDeliveryOrders(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+	@Override
+	public List<OrderResponseDto> getAllOutForDeliveryOrders(int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
 
-        Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.OUT_FOR_DELIVERY, pageable);
+		Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.OUT_FOR_DELIVERY, pageable);
 
-        List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
-                .map(order -> {
-                    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
-                    List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
-                            .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
-                            .collect(Collectors.toList());
+		List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream().map(order -> {
+			OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+			List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
+					.map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
+					.collect(Collectors.toList());
 
-                    orderResponseDto.setOrderItems(orderItemDtos);
+			orderResponseDto.setOrderItems(orderItemDtos);
 
-                    if (order.getDeliveryAgent() != null) {
-                        orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
-                    } else {
-                        orderResponseDto.setDeliveryAgent(null);
-                    }
+			if (order.getDeliveryAgent() != null) {
+				orderResponseDto
+						.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
+			} else {
+				orderResponseDto.setDeliveryAgent(null);
+			}
 
-                    if (order.getUser().getCustomerDetails() != null) {
-                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
-                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
-                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
-                    } else {
-                        orderResponseDto.setCustomerDetails(null);
-                    }
+			if (order.getUser().getCustomerDetails() != null) {
+				CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+						.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+				customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+				orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+			} else {
+				orderResponseDto.setCustomerDetails(null);
+			}
 
-                    return orderResponseDto;
-                })
-                .collect(Collectors.toList());
+			return orderResponseDto;
+		}).collect(Collectors.toList());
 
-        return orderResponseDtos;
-    }
+		return orderResponseDtos;
+	}
 
-    @Override
-    public List<OrderResponseDto> getAllDeliveredOrders(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+	@Override
+	public List<OrderResponseDto> getAllDeliveredOrders(int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
 
-        Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.DELIVERED, pageable);
+		Page<Order> ordersPage = orderRepository.findByStatus(OrderStatus.DELIVERED, pageable);
 
-        List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
-                .map(order -> {
-                    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
-                    List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
-                            .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
-                            .collect(Collectors.toList());
+		List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream().map(order -> {
+			OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+			List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
+					.map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
+					.collect(Collectors.toList());
 
-                    orderResponseDto.setOrderItems(orderItemDtos);
+			orderResponseDto.setOrderItems(orderItemDtos);
 
-                    if (order.getDeliveryAgent() != null) {
-                        orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
-                    } else {
-                        orderResponseDto.setDeliveryAgent(null);
-                    }
+			if (order.getDeliveryAgent() != null) {
+				orderResponseDto
+						.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
+			} else {
+				orderResponseDto.setDeliveryAgent(null);
+			}
 
-                    if (order.getUser().getCustomerDetails() != null) {
-                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
-                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
-                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
-                    } else {
-                        orderResponseDto.setCustomerDetails(null);
-                    }
+			if (order.getUser().getCustomerDetails() != null) {
+				CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+						.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+				customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+				orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+			} else {
+				orderResponseDto.setCustomerDetails(null);
+			}
 
-                    return orderResponseDto;
-                })
-                .collect(Collectors.toList());
+			return orderResponseDto;
+		}).collect(Collectors.toList());
 
-        return orderResponseDtos;
-    }
+		return orderResponseDtos;
+	}
 
-    @Override
-    public List<OrderResponseDto> getOrdersByUser(int page, int size) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+	@Override
+	public List<OrderResponseDto> getOrdersByUser(int page, int size) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String email = authentication.getName();
 
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
-        User user = userOptional.get();
+		Optional<User> userOptional = userRepository.findByEmail(email);
+		if (userOptional.isEmpty()) {
+			throw new RuntimeException("User not found");
+		}
+		User user = userOptional.get();
 
-        Pageable pageable = PageRequest.of(page, size);
+		Pageable pageable = PageRequest.of(page, size);
 
-        Page<Order> ordersPage = orderRepository.findByUser(user, pageable);
+		Page<Order> ordersPage = orderRepository.findByUser(user, pageable);
 
-        List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
-                .map(order -> {
-                    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
-                    List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
-                            .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
-                            .collect(Collectors.toList());
+		List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream().map(order -> {
+			OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+			List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
+					.map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
+					.collect(Collectors.toList());
 
-                    orderResponseDto.setOrderItems(orderItemDtos);
+			orderResponseDto.setOrderItems(orderItemDtos);
 
-                    if (order.getDeliveryAgent() != null) {
-                        orderResponseDto.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
-                    } else {
-                        orderResponseDto.setDeliveryAgent(null);
-                    }
+			if (order.getDeliveryAgent() != null) {
+				orderResponseDto
+						.setDeliveryAgent(modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class));
+			} else {
+				orderResponseDto.setDeliveryAgent(null);
+			}
 
-                    if (order.getUser().getCustomerDetails() != null) {
-                        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
-                        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
-                        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
-                    } else {
-                        orderResponseDto.setCustomerDetails(null);
-                    }
+			if (order.getUser().getCustomerDetails() != null) {
+				CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+						.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+				customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+				orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+			} else {
+				orderResponseDto.setCustomerDetails(null);
+			}
 
-                    return orderResponseDto;
-                })
-                .collect(Collectors.toList());
+			return orderResponseDto;
+		}).collect(Collectors.toList());
 
-        return orderResponseDtos;
-    }
-    
+		return orderResponseDtos;
+	}
 
-    @Override
-    public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderId(int orderId) {
-        
-        Optional<Order> orderOptional = orderRepository.findById(orderId);
-        if (orderOptional.isEmpty()) {
-            throw new RuntimeException("Order not found");
-        }
-        
-        Order order = orderOptional.get();
+	@Override
+	public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderLocation(int orderId) {
+		Optional<Order> orderOptional = orderRepository.findById(orderId);
+		if (orderOptional.isEmpty()) {
+			throw new RuntimeException("Order not found");
+		}
 
-        String customerCity = order.getUser().getCustomerDetails().getCity(); 
+		Order order = orderOptional.get();
+		String customerCity = order.getUser().getCustomerDetails().getCity();
 
-        List<DeliveryAgentDetails> deliveryAgentDetailsList = deliveryAgentDetailsRepository
-                .findByDeliveryZoneIgnoreCase(customerCity);
+		List<DeliveryAgentDetails> deliveryAgentDetailsList = deliveryAgentDetailsRepository
+				.findByDeliveryZoneIgnoreCase(customerCity);
 
-        List<DeliveryAgentResponseDto> deliveryAgentResponseDtos = deliveryAgentDetailsList.stream()
-                .map(deliveryAgentDetails -> modelMapper.map(deliveryAgentDetails, DeliveryAgentResponseDto.class))
-                .collect(Collectors.toList());
+		List<DeliveryAgentResponseDto> deliveryAgentResponseDtos = deliveryAgentDetailsList.stream()
+				.map(deliveryAgentDetails -> {
+					DeliveryAgentResponseDto dto = modelMapper.map(deliveryAgentDetails,
+							DeliveryAgentResponseDto.class);
 
-        return deliveryAgentResponseDtos;
-    }
+					String deliveryAgentEmail = deliveryAgentDetails.getUser().getEmail();
 
-    @Override
-    public OrderResponseDto getOrderById(int orderId) {
-        return null;
-    }
+					dto.setEmail(deliveryAgentEmail);
+
+					return dto;
+				}).collect(Collectors.toList());
+
+		return deliveryAgentResponseDtos;
+	}
+
+	@Override
+	public OrderResponseDto getOrderById(int orderId) {
+		Optional<Order> orderOptional = orderRepository.findById(orderId);
+		if (orderOptional.isEmpty()) {
+			throw new RuntimeException("Order not found");
+		}
+		Order order = orderOptional.get();
+
+		OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+
+		if (order.getDeliveryAgent() != null) {
+			DeliveryAgentResponseDto deliveryAgentResponseDto = modelMapper.map(order.getDeliveryAgent(),
+					DeliveryAgentResponseDto.class);
+			orderResponseDto.setDeliveryAgent(deliveryAgentResponseDto);
+		}
+
+		if (order.getUser() != null && order.getUser().getCustomerDetails() != null) {
+			CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+					.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+			orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+		}
+
+		List<OrderItemResponseDto> orderItemResponseDtos = order.getOrderItems().stream().map(orderItem -> {
+			OrderItemResponseDto itemDto = modelMapper.map(orderItem, OrderItemResponseDto.class);
+			return itemDto;
+		}).collect(Collectors.toList());
+
+		orderResponseDto.setOrderItems(orderItemResponseDtos);
+
+		return orderResponseDto;
+	}
+
 }

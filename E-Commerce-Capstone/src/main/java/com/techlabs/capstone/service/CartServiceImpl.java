@@ -15,6 +15,7 @@ import com.techlabs.capstone.dto.CartResponseDto;
 import com.techlabs.capstone.entity.Cart;
 import com.techlabs.capstone.entity.CartItem;
 import com.techlabs.capstone.entity.Product;
+import com.techlabs.capstone.entity.ProductImage;
 import com.techlabs.capstone.entity.User;
 import com.techlabs.capstone.repository.CartItemRepository;
 import com.techlabs.capstone.repository.CartRepository;
@@ -58,13 +59,17 @@ public class CartServiceImpl implements CartService {
         List<CartItemResponseDto> cartItems = cart.getCartItems().stream()
             .map(cartItem -> {
                 Product product = cartItem.getProduct();
+                List<String> productImageUrls = product.getProductImages().stream()
+                    .map(ProductImage::getImageUrl)
+                    .collect(Collectors.toList());
                 return new CartItemResponseDto(
                     cartItem.getId(),
                     product.getProductId(),
                     product.getProductName(),
                     product.getProductDiscountedPrice(),
                     cartItem.getQuantity(),
-                    cartItem.getTotalPrice()
+                    cartItem.getTotalPrice(),
+                    productImageUrls
                 );
             })
             .collect(Collectors.toList());
@@ -90,13 +95,18 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.save(cartItem);
         cartRepository.save(cart);
 
+        List<String> productImageUrls = product.getProductImages().stream()
+            .map(ProductImage::getImageUrl)
+            .collect(Collectors.toList());
+
         return new CartItemResponseDto(
             cartItem.getId(),
             product.getProductId(),
             product.getProductName(),
             product.getProductDiscountedPrice(),
             cartItem.getQuantity(),
-            cartItem.getTotalPrice()
+            cartItem.getTotalPrice(),
+            productImageUrls
         );
     }
 
@@ -124,7 +134,6 @@ public class CartServiceImpl implements CartService {
 
         if (cartItemOptional.isPresent()) {
             CartItem cartItem = cartItemOptional.get();
-            
             cartItem.setQuantity(quantity);
             double updatedTotalPrice = cartItem.getPrice() * quantity;
             cartItem.setTotalPrice(updatedTotalPrice);

@@ -70,7 +70,7 @@ public class OrderController {
     
     @GetMapping("{orderId}/delivery-agents")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderId(@PathVariable int orderId) {
-        return orderService.getDeliveryAgentsByOrderId(orderId);
+    public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderLocation(@PathVariable int orderId) {
+        return orderService.getDeliveryAgentsByOrderLocation(orderId);
     }
 }

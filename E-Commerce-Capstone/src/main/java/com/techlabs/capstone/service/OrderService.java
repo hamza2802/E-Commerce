@@ -19,6 +19,6 @@ public interface OrderService {
 
 	List<OrderResponseDto> getAllPlacedOrders(int page, int size);
 
-	List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderId(int orderId);
+	List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderLocation(int orderId);
 
 }

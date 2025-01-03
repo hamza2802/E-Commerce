@@ -1,5 +1,9 @@
 package com.techlabs.capstone.dto;
 
+import java.util.List;
+
+import com.techlabs.capstone.entity.ProductImage;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -15,4 +19,5 @@ public class CartItemResponseDto {
     private double productPrice;
     private int quantity;
     private double totalPrice;
+    private List<String> productImageUrls;
 }
