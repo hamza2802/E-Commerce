@@ -19,5 +19,7 @@ public interface ProductService {
 	ProductResponseDto addProductWithImages(ProductRequestDto productRequestDto, MultipartFile[] files)
 			throws IOException;
 
+	void deleteProduct(int productId);
+
 
 }

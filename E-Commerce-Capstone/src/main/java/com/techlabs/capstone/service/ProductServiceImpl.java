@@ -117,4 +117,26 @@ public class ProductServiceImpl implements ProductService {
 
         return productResponseDto;
     }
+    
+    @Override
+    public void deleteProduct(int productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        // Delete associated product images from the database and cloud storage
+        List<ProductImage> productImages = product.getProductImages();
+        for (ProductImage productImage : productImages) {
+            try {
+                // Delete image from Cloudinary
+                String imageUrl = productImage.getImageUrl();
+                cloudinary.uploader().destroy(imageUrl, ObjectUtils.emptyMap());
+            } catch (IOException e) {
+                throw new RuntimeException("Error deleting image from cloud: " + e.getMessage(), e);
+            }
+            productImageRepository.delete(productImage);
+        }
+
+        // Delete the product from the database
+        productRepository.delete(product);
+    }
 }
