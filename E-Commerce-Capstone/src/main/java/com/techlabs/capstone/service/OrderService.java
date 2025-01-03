@@ -21,4 +21,6 @@ public interface OrderService {
 
 	List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderLocation(int orderId);
 
+	OrderResponseDto assignDeliveryAgentToOrder(int orderId, int deliveryAgentId);
+
 }

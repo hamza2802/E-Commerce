@@ -23,44 +23,41 @@ import com.techlabs.capstone.service.CartServiceImpl;
 @CrossOrigin(origins = "http://localhost:4200")
 public class CartController {
 
-    @Autowired
-    private CartServiceImpl cartService;
+	@Autowired
+	private CartServiceImpl cartService;
 
-    @GetMapping
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<CartResponseDto> getCart() {
-        CartResponseDto cartResponse = cartService.getCart();
-        return ResponseEntity.ok(cartResponse);
-    }
+	@GetMapping
+	@PreAuthorize("hasRole('CUSTOMER')")
+	public ResponseEntity<CartResponseDto> getCart() {
+		CartResponseDto cartResponse = cartService.getCart();
+		return ResponseEntity.ok(cartResponse);
+	}
 
-    @PostMapping("/add")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<CartItemResponseDto> addCartItemToCart(@RequestBody CartItemRequestDto cartItemRequestDto) {
-        CartItemResponseDto cartItemResponse = cartService.addCartItemToCart(cartItemRequestDto);
-        return ResponseEntity.ok(cartItemResponse);
-    }
+	@PostMapping("/add")
+	@PreAuthorize("hasRole('CUSTOMER')")
+	public ResponseEntity<CartItemResponseDto> addCartItemToCart(@RequestBody CartItemRequestDto cartItemRequestDto) {
+		CartItemResponseDto cartItemResponse = cartService.addCartItemToCart(cartItemRequestDto);
+		return ResponseEntity.ok(cartItemResponse);
+	}
 
-    @DeleteMapping("/remove/{cartItemId}")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<Void> removeCartItemFromCart(@PathVariable int cartItemId) {
-        cartService.removeCartItemFromCart(cartItemId);
-        return ResponseEntity.noContent().build();
-    }
+	@DeleteMapping("/remove/{cartItemId}")
+	@PreAuthorize("hasRole('CUSTOMER')")
+	public ResponseEntity<Void> removeCartItemFromCart(@PathVariable int cartItemId) {
+		cartService.removeCartItemFromCart(cartItemId);
+		return ResponseEntity.noContent().build();
+	}
 
-    @PutMapping("/update/{cartItemId}")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<Void> updateCartItemQuantity(@PathVariable int cartItemId,
-                                                       @RequestBody int quantity) {
-     
-        cartService.updateCartItemQuantity(cartItemId, quantity);
-        
-        return ResponseEntity.ok().build();
-    }
+	@PutMapping("/update/{cartItemId}")
+	@PreAuthorize("hasRole('CUSTOMER')")
+	public ResponseEntity<Void> updateCartItemQuantity(@PathVariable int cartItemId, @RequestBody int quantity) {
+		cartService.updateCartItemQuantity(cartItemId, quantity);
+		return ResponseEntity.ok().build();
+	}
 
-    @GetMapping("/total")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<Double> getCartTotalAmount() {
-        double totalAmount = cartService.getCartTotalAmount();
-        return ResponseEntity.ok(totalAmount);
-    }
+	@GetMapping("/total")
+	@PreAuthorize("hasRole('CUSTOMER')")
+	public ResponseEntity<Double> getCartTotalAmount() {
+		double totalAmount = cartService.getCartTotalAmount();
+		return ResponseEntity.ok(totalAmount);
+	}
 }

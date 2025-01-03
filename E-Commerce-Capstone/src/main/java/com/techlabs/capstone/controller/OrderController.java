@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -73,4 +75,13 @@ public class OrderController {
     public List<DeliveryAgentResponseDto> getDeliveryAgentsByOrderLocation(@PathVariable int orderId) {
         return orderService.getDeliveryAgentsByOrderLocation(orderId);
     }
+    
+    @PutMapping("/assign-delivery-agent/{orderId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponseDto> assignDeliveryAgentToOrder(@PathVariable int orderId,
+                                                                       @RequestBody int deliveryAgentId) {
+        OrderResponseDto orderResponseDto = orderService.assignDeliveryAgentToOrder(orderId, deliveryAgentId);
+        return ResponseEntity.ok(orderResponseDto);
+    }
+
 }

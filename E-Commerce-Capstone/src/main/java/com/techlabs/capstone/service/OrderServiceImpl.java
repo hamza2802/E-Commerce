@@ -328,5 +328,48 @@ public class OrderServiceImpl implements OrderService {
 
 		return orderResponseDto;
 	}
+	
+	@Override
+	public OrderResponseDto assignDeliveryAgentToOrder(int orderId, int deliveryAgentId) {
+	    Optional<Order> orderOptional = orderRepository.findById(orderId);
+	    if (orderOptional.isEmpty()) {
+	        throw new RuntimeException("Order not found");
+	    }
+	    Order order = orderOptional.get();
+
+	    Optional<DeliveryAgentDetails> deliveryAgentDetailsOptional = deliveryAgentDetailsRepository.findById(deliveryAgentId);
+	    if (deliveryAgentDetailsOptional.isEmpty()) {
+	        throw new RuntimeException("Delivery agent not found");
+	    }
+	    DeliveryAgentDetails deliveryAgentDetails = deliveryAgentDetailsOptional.get();
+
+	    order.setDeliveryAgent(deliveryAgentDetails);
+	    order.setStatus(OrderStatus.OUT_FOR_DELIVERY);
+
+	    orderRepository.save(order);
+
+	    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+	    DeliveryAgentResponseDto deliveryAgentResponseDto = modelMapper.map(deliveryAgentDetails, DeliveryAgentResponseDto.class);
+
+	    String deliveryAgentEmail = deliveryAgentDetails.getUser().getEmail();
+	    deliveryAgentResponseDto.setEmail(deliveryAgentEmail);
+
+	    orderResponseDto.setDeliveryAgent(deliveryAgentResponseDto);
+
+	    if (order.getUser().getCustomerDetails() != null) {
+	        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+	                .map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+	        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+	        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+	    }
+
+	    List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
+	            .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
+	            .collect(Collectors.toList());
+	    orderResponseDto.setOrderItems(orderItemDtos);
+
+	    return orderResponseDto;
+	}
+
 
 }
