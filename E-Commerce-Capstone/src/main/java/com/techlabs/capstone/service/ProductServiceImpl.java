@@ -103,6 +103,26 @@ public class ProductServiceImpl implements ProductService {
 
         return productResponseDtos;
     }		
+    
+    @Override
+    public List<ProductResponseDto> getAllProductsByCategory(String category) {
+        // Fetch all products based on the category (no pagination)
+        List<Product> products = productRepository.findByCategory(category);
+
+        // Convert the products to ProductResponseDto and include image URLs
+        List<ProductResponseDto> productResponseDtos = products.stream()
+                .map(product -> {
+                    ProductResponseDto productResponseDto = modelMapper.map(product, ProductResponseDto.class);
+                    List<String> imageUrls = product.getProductImages().stream()
+                            .map(ProductImage::getImageUrl)
+                            .collect(Collectors.toList());
+                    productResponseDto.setImageUrls(imageUrls);
+                    return productResponseDto;
+                })
+                .collect(Collectors.toList());
+
+        return productResponseDtos;
+    }
 
     @Override
     public ProductResponseDto getProductById(int productId) {

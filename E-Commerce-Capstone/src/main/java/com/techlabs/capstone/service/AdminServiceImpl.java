@@ -37,22 +37,19 @@ public class AdminServiceImpl implements AdminService {
 	public void initAdminUser() {
 		Optional<User> existingAdminUser = userRepository.findByEmail("admin@gmail.com");
 		if (existingAdminUser.isPresent()) {
-			return; // If the admin user already exists, do nothing
+			return;
 		}
 
-		// Fetch the role by its identifier
 		List<Role> roles = roleRepository.findByRole("ROLE_ADMIN");
 		if (roles.isEmpty()) {
 			throw new RuntimeException("Admin role not found");
 		}
 
-		// Create the admin user
 		User adminUser = new User();
 		adminUser.setEmail("admin@gmail.com");
-		adminUser.setPassword(passwordEncoder.encode("admin@pass"));// Encode the password
+		adminUser.setPassword(passwordEncoder.encode("Admin@123"));
 		adminUser.setActive(true);
 
-		// Assign the role(s) to the admin user
 		adminUser.setRoles(roles);
 
 		// Create the AdminDetails object (firstName, lastName)
