@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.techlabs.capstone.dto.CategoryRequestDto;
 import com.techlabs.capstone.dto.ProductRequestDto;
 import com.techlabs.capstone.dto.ProductResponseDto;
 import com.techlabs.capstone.service.ProductImageService;
@@ -73,8 +72,8 @@ public class ProductController {
 
 	@GetMapping
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<List<ProductResponseDto>> getAllProducts(@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int size) {
+	public ResponseEntity<List<ProductResponseDto>> getAllProducts(@RequestParam int page,
+			@RequestParam int size) {
 		List<ProductResponseDto> products = productService.getAllProducts(page, size);
 
 		if (products.isEmpty()) {

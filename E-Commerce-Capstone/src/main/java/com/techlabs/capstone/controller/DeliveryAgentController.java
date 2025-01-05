@@ -40,8 +40,8 @@ public class DeliveryAgentController {
 	@GetMapping()
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<Page<DeliveryAgentResponseDto>> getAllDeliveryAgents(
-			@RequestParam(value = "page", defaultValue = "0") int page,
-			@RequestParam(value = "size", defaultValue = "10") int size) {
+			@RequestParam(value = "page") int page,
+			@RequestParam(value = "size") int size) {
 
 		Page<DeliveryAgentResponseDto> deliveryAgents = deliveryAgentService.getAllDeliveryAgents(page, size);
 

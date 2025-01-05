@@ -38,7 +38,7 @@ public class OrderController {
 
     @GetMapping("/user")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByUser(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<OrderResponseDto>> getOrdersByUser(@RequestParam int page, @RequestParam int size) {
         List<OrderResponseDto> orders = orderService.getOrdersByUser(page, size);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
@@ -51,21 +51,21 @@ public class OrderController {
 
     @GetMapping("/placed")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<OrderResponseDto>> getAllPlacedOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<OrderResponseDto>> getAllPlacedOrders(@RequestParam int page, @RequestParam int size) {
         List<OrderResponseDto> orders = orderService.getAllPlacedOrders(page, size);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
-    @GetMapping("/out-for-delivery")
+    @GetMapping("/out_for_delivery")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<OrderResponseDto>> getAllOutForDeliveryOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<OrderResponseDto>> getAllOutForDeliveryOrders(@RequestParam int page, @RequestParam int size) {
         List<OrderResponseDto> orders = orderService.getAllOutForDeliveryOrders(page, size);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
     @GetMapping("/delivered")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<OrderResponseDto>> getAllDeliveredOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<OrderResponseDto>> getAllDeliveredOrders(@RequestParam int page, @RequestParam int size) {
         List<OrderResponseDto> orders = orderService.getAllDeliveredOrders(page, size);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }

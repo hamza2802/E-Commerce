@@ -42,8 +42,8 @@ public class CustomerController {
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<CustomerDetailsResponseDto>> getAllCustomers(
-    		 @RequestParam(value = "page", defaultValue = "0") int page,
-             @RequestParam(value = "size", defaultValue = "10") int size) {
+    		 @RequestParam(value = "page") int page,
+             @RequestParam(value = "size") int size) {
         
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<CustomerDetailsResponseDto> customers = customerService.getAllCustomers(pageRequest);

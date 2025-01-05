@@ -89,7 +89,10 @@ public class CartServiceImpl implements CartService {
         double productPrice = product.getProductDiscountedPrice();
         double totalPrice = productPrice * cartItemRequestDto.getQuantity();
 
-        CartItem cartItem = new CartItem(cart, product, cartItemRequestDto.getQuantity(), productPrice, totalPrice);
+        // Round the totalPrice to 2 decimal places using Math.round()
+        double totalPriceRounded = Math.round(totalPrice * 100.0) / 100.0;
+
+        CartItem cartItem = new CartItem(cart, product, cartItemRequestDto.getQuantity(), productPrice, totalPriceRounded);
         cart.addCartItem(cartItem);
 
         cartItemRepository.save(cartItem);
@@ -105,10 +108,11 @@ public class CartServiceImpl implements CartService {
             product.getProductName(),
             product.getProductDiscountedPrice(),
             cartItem.getQuantity(),
-            cartItem.getTotalPrice(),
+            totalPriceRounded,  // Return the rounded total price
             productImageUrls
         );
     }
+
 
     @Override
     public void removeCartItemFromCart(int cartItemId) {
