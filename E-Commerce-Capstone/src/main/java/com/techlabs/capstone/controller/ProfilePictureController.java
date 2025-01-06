@@ -5,12 +5,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.techlabs.capstone.dto.ProfilePictureResponseDto;
+import com.techlabs.capstone.entity.ProfilePicture;
 import com.techlabs.capstone.service.ProfilePictureService;
 
 @RestController
@@ -32,5 +35,14 @@ public class ProfilePictureController {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading profile picture.");
 	    }
 	}
+	@GetMapping("/picture")
+    public ResponseEntity<ProfilePictureResponseDto> getProfilePicture() {
+        ProfilePictureResponseDto profilePicture = profilePictureService.getProfilePictureByToken();
+        
+        if (profilePicture == null) {
+            return ResponseEntity.notFound().build();
+        }
 
+        return ResponseEntity.ok(profilePicture);
+    }
 }

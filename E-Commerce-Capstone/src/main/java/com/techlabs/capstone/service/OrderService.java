@@ -23,4 +23,6 @@ public interface OrderService {
 
 	OrderResponseDto assignDeliveryAgentToOrder(int orderId, int deliveryAgentId);
 
+	OrderResponseDto markOrderAsDelivered(int orderId);
+
 }

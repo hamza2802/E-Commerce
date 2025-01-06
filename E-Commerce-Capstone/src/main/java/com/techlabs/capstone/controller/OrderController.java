@@ -83,5 +83,16 @@ public class OrderController {
         OrderResponseDto orderResponseDto = orderService.assignDeliveryAgentToOrder(orderId, deliveryAgentId);
         return ResponseEntity.ok(orderResponseDto);
     }
+    
+    @PutMapping("/{orderId}/mark-delivered")
+    @PreAuthorize("hasRole('DELIVERY_AGENT')")
+    public ResponseEntity<OrderResponseDto> markOrderAsDelivered(@PathVariable int orderId) {
+        try {
+            OrderResponseDto orderResponseDto = orderService.markOrderAsDelivered(orderId);
+            return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
 
 }

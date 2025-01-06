@@ -411,5 +411,61 @@ import com.techlabs.capstone.repository.UserRepository;
 	
 			return orderResponseDto;
 		}
+		
+		
+
+		@Override
+		public OrderResponseDto markOrderAsDelivered(int orderId) {
+		    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		    String email = authentication.getName(); 
+		   
+		    Optional<User> userOptional = userRepository.findByEmail(email);
+		    if (userOptional.isEmpty()) {
+		        throw new RuntimeException("User not found");
+		    }
+		    User user = userOptional.get();
+
+		    if (user.getDeliveryAgentDetails() == null) {
+		        throw new RuntimeException("This user is not a delivery agent");
+		    }
+
+		    int deliveryAgentId = user.getDeliveryAgentDetails().getDeliveryAgentId();
+
+		    Optional<Order> orderOptional = orderRepository.findById(orderId);
+		    if (orderOptional.isEmpty()) {
+		        throw new RuntimeException("Order not found");
+		    }
+		    Order order = orderOptional.get();
+
+		    if (order.getDeliveryAgent() == null || order.getDeliveryAgent().getDeliveryAgentId() != deliveryAgentId) {
+		        throw new RuntimeException("This delivery agent is not assigned to this order");
+		    }
+
+		    order.setStatus(OrderStatus.DELIVERED);
+
+		    orderRepository.save(order);
+
+		    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+
+		    String deliveryAgentEmail = order.getDeliveryAgent().getUser().getEmail();
+		    String subjectToAgent = "Order #" + order.getOrderId() + " Delivered";
+		    String bodyToAgent = "Dear " + order.getDeliveryAgent().getUserFirstName() + " " 
+		            + order.getDeliveryAgent().getUserLastName() + ",\n\n" 
+		            + "Congratulations! You have successfully delivered Order #" + order.getOrderId() + ".\n\n" 
+		            + "Best regards,\nGadgetCart Team";
+		    emailService.sendEmail(deliveryAgentEmail, subjectToAgent, bodyToAgent);
+
+		    String customerEmail = order.getUser().getEmail();
+		    String subjectToCustomer = "Your Order #" + order.getOrderId() + " Has Been Delivered";
+		    String bodyToCustomer = "Dear " + order.getUser().getCustomerDetails().getFirstName() + " "
+		            + order.getUser().getCustomerDetails().getLastName() + ",\n\n"
+		            + "Good news! Your order #" + order.getOrderId() + " has been successfully delivered.\n\n"
+		            + "Thank you for shopping with us.\n\n"
+		            + "Best regards,\nGadgetCart Team";
+		    emailService.sendEmail(customerEmail, subjectToCustomer, bodyToCustomer);
+
+		    return orderResponseDto;
+		}
+
 	
 	}
