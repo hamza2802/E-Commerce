@@ -3,6 +3,7 @@ package com.techlabs.capstone.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.techlabs.capstone.dto.AssignDeliveryAgentDto;
 import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
 import com.techlabs.capstone.dto.OrderResponseDto;
 import com.techlabs.capstone.service.OrderService;
@@ -76,23 +78,35 @@ public class OrderController {
         return orderService.getDeliveryAgentsByOrderLocation(orderId);
     }
     
-    @PutMapping("/assign-delivery-agent/{orderId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OrderResponseDto> assignDeliveryAgentToOrder(@PathVariable int orderId,
-                                                                       @RequestBody int deliveryAgentId) {
-        OrderResponseDto orderResponseDto = orderService.assignDeliveryAgentToOrder(orderId, deliveryAgentId);
-        return ResponseEntity.ok(orderResponseDto);
-    }
     
-    @PutMapping("/{orderId}/mark-delivered")
+    @PutMapping("/mark-as-delivered/{orderId}")
     @PreAuthorize("hasRole('DELIVERY_AGENT')")
     public ResponseEntity<OrderResponseDto> markOrderAsDelivered(@PathVariable int orderId) {
-        try {
+       
             OrderResponseDto orderResponseDto = orderService.markOrderAsDelivered(orderId);
-            return new ResponseEntity<>(orderResponseDto, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
+            return ResponseEntity.ok(orderResponseDto);
+      
     }
+    
+    @PutMapping("/assign-delivery-agent")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponseDto> assignDeliveryAgentToOrder(@RequestBody AssignDeliveryAgentDto assignDeliveryAgentDto) {
+       
+        OrderResponseDto orderResponseDto = orderService.assignDeliveryAgentToOrder(assignDeliveryAgentDto);
+
+        return ResponseEntity.ok(orderResponseDto);
+    }
+
+    
+    @GetMapping("/assigned-to-me")
+    @PreAuthorize("hasRole('DELIVERY_AGENT')")
+    public ResponseEntity<List<OrderResponseDto>> getOrdersByDeliveryAgentEmail(
+            Pageable pageable) {
+
+        List<OrderResponseDto> orders = orderService.getOrdersByDeliveryAgentEmail(pageable);
+
+        return ResponseEntity.ok(orders);
+    }
+    
 
 }

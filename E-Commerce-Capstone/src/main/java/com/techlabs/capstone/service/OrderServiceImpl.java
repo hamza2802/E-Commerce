@@ -1,12 +1,11 @@
-	package com.techlabs.capstone.service;
+package com.techlabs.capstone.service;
 	
-	import java.util.List;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.techlabs.capstone.dto.AssignDeliveryAgentDto;
 import com.techlabs.capstone.dto.CustomerDetailsResponseDto;
 import com.techlabs.capstone.dto.DeliveryAgentResponseDto;
 import com.techlabs.capstone.dto.OrderItemResponseDto;
@@ -30,8 +30,8 @@ import com.techlabs.capstone.repository.OrderItemRepository;
 import com.techlabs.capstone.repository.OrderRepository;
 import com.techlabs.capstone.repository.UserRepository;
 	
-	@Service
-	public class OrderServiceImpl implements OrderService {
+@Service
+public class OrderServiceImpl implements OrderService {
 	
 		@Autowired
 		private OrderRepository orderRepository;
@@ -343,82 +343,75 @@ import com.techlabs.capstone.repository.UserRepository;
 		}
 	
 		@Override
-		public OrderResponseDto assignDeliveryAgentToOrder(int orderId, int deliveryAgentId) {
-			Optional<Order> orderOptional = orderRepository.findById(orderId);
-			if (orderOptional.isEmpty()) {
-				throw new RuntimeException("Order not found");
-			}
-			Order order = orderOptional.get();
-	
-			Optional<DeliveryAgentDetails> deliveryAgentDetailsOptional = deliveryAgentDetailsRepository
-					.findById(deliveryAgentId);
-			if (deliveryAgentDetailsOptional.isEmpty()) {
-				throw new RuntimeException("Delivery agent not found");
-			}
-			DeliveryAgentDetails deliveryAgentDetails = deliveryAgentDetailsOptional.get();
-	
-			order.setDeliveryAgent(deliveryAgentDetails);
-			order.setStatus(OrderStatus.OUT_FOR_DELIVERY);
-	
-			orderRepository.save(order);
-	
-			OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
-			DeliveryAgentResponseDto deliveryAgentResponseDto = modelMapper.map(deliveryAgentDetails,
-					DeliveryAgentResponseDto.class);
-	
-			String deliveryAgentEmail = deliveryAgentDetails.getUser().getEmail();
-			deliveryAgentResponseDto.setEmail(deliveryAgentEmail);
-	
-			orderResponseDto.setDeliveryAgent(deliveryAgentResponseDto);
-	
-			if (order.getUser().getCustomerDetails() != null) {
-				CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
-						.map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
-				customerDetailsResponseDto.setEmail(order.getUser().getEmail());
-				orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
-			}
-	
-			List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
-					.map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class)).collect(Collectors.toList());
-			orderResponseDto.setOrderItems(orderItemDtos);
-	
-			// Send email to the assigned delivery agent
-			// Send email to the assigned delivery agent
-			String subject = "Delivery Agent Assigned to Order #" + order.getOrderId();
-			String body = "Dear " + deliveryAgentDetails.getUserFirstName() + " " + deliveryAgentDetails.getUserLastName()
-			        + ",\n\n" + "You have been assigned to deliver Order #" + order.getOrderId()
-			        + ". Please pick up the order and proceed with the delivery.\n\n" 
-			        + "Best regards,\nGadgetCart Team";
+		public OrderResponseDto assignDeliveryAgentToOrder(AssignDeliveryAgentDto assignDeliveryAgentDto) {
+		    int orderId = assignDeliveryAgentDto.getOrderId();
+		    String deliveryAgentEmail = assignDeliveryAgentDto.getDeliveryAgentEmail();
+		    
+		    Optional<Order> orderOptional = orderRepository.findById(orderId);
+		    if (orderOptional.isEmpty()) {
+		        throw new RuntimeException("Order not found");
+		    }
+		    Order order = orderOptional.get();
 
-			// Send the email to the delivery agent
-			emailService.sendEmail(deliveryAgentEmail, subject, body);
+		    Optional<DeliveryAgentDetails> deliveryAgentDetailsOptional = deliveryAgentDetailsRepository
+		            .findByUserEmailIgnoreCase(deliveryAgentEmail);
+		    if (deliveryAgentDetailsOptional.isEmpty()) {
+		        throw new RuntimeException("Delivery agent not found with the provided email");
+		    }
+		    DeliveryAgentDetails deliveryAgentDetails = deliveryAgentDetailsOptional.get();
 
-			// Send email to the customer
-			String customerEmail = order.getUser().getEmail();
-			String customerSubject = "Your Order #" + order.getOrderId() + " is out for delivery";
-			String customerBody = "Dear " + order.getUser().getCustomerDetails().getFirstName() + " "
-			        + order.getUser().getCustomerDetails().getLastName() + ",\n\n" 
-			        + "Your order #" + order.getOrderId() + " is now out for delivery. "
-			        + "The assigned delivery agent is " + deliveryAgentDetails.getUserFirstName() + " "
-			        + deliveryAgentDetails.getUserLastName() + " with Phone: +91 " 
-			        + deliveryAgentDetails.getContactNumber() + ".\n\n" 
-			        + "Best regards,\nGadgetCart Team";
+		    order.setDeliveryAgent(deliveryAgentDetails);
+		    order.setStatus(OrderStatus.OUT_FOR_DELIVERY);
 
-			// Send the email to the customer
-			emailService.sendEmail(customerEmail, customerSubject, customerBody);
+		    orderRepository.save(order);
 
-			emailService.sendEmail(customerEmail, customerSubject, customerBody);
-	
-			return orderResponseDto;
+		    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+		    DeliveryAgentResponseDto deliveryAgentResponseDto = modelMapper.map(deliveryAgentDetails, DeliveryAgentResponseDto.class);
+
+		    deliveryAgentResponseDto.setEmail(deliveryAgentEmail);
+
+		    orderResponseDto.setDeliveryAgent(deliveryAgentResponseDto);
+
+		    if (order.getUser().getCustomerDetails() != null) {
+		        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+		                .map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+		        customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+		        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+		    }
+
+		    List<OrderItemResponseDto> orderItemDtos = order.getOrderItems().stream()
+		            .map(orderItem -> modelMapper.map(orderItem, OrderItemResponseDto.class))
+		            .collect(Collectors.toList());
+		    orderResponseDto.setOrderItems(orderItemDtos);
+
+		    String subject = "Delivery Agent Assigned to Order #" + order.getOrderId();
+		    String body = "Dear " + deliveryAgentDetails.getUserFirstName() + " " + deliveryAgentDetails.getUserLastName()
+		            + ",\n\n" + "You have been assigned to deliver Order #" + order.getOrderId()
+		            + ". Please pick up the order and proceed with the delivery.\n\n"
+		            + "Best regards,\nGadgetCart Team";
+
+		    emailService.sendEmail(deliveryAgentEmail, subject, body);
+
+		    String customerEmail = order.getUser().getEmail();
+		    String customerSubject = "Your Order #" + order.getOrderId() + " is out for delivery";
+		    String customerBody = "Dear " + order.getUser().getCustomerDetails().getFirstName() + " "
+		            + order.getUser().getCustomerDetails().getLastName() + ",\n\n"
+		            + "Your order #" + order.getOrderId() + " is now out for delivery. "
+		            + "The assigned delivery agent is " + deliveryAgentDetails.getUserFirstName() + " "
+		            + deliveryAgentDetails.getUserLastName() + " with Phone: +91 "
+		            + deliveryAgentDetails.getContactNumber() + ".\n\n"
+		            + "Best regards,\nGadgetCart Team";
+
+		    emailService.sendEmail(customerEmail, customerSubject, customerBody);
+
+		    return orderResponseDto;
 		}
-		
-		
 
 		@Override
 		public OrderResponseDto markOrderAsDelivered(int orderId) {
 		    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		    String email = authentication.getName(); 
-		   
+
 		    Optional<User> userOptional = userRepository.findByEmail(email);
 		    if (userOptional.isEmpty()) {
 		        throw new RuntimeException("User not found");
@@ -441,11 +434,29 @@ import com.techlabs.capstone.repository.UserRepository;
 		        throw new RuntimeException("This delivery agent is not assigned to this order");
 		    }
 
+		    // Set the order status to 'DELIVERED'
 		    order.setStatus(OrderStatus.DELIVERED);
-
 		    orderRepository.save(order);
 
+		    // Map the Order entity to OrderResponseDto
 		    OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+
+		    if (order.getUser().getCustomerDetails() != null) {
+		        CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+		                .map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+		        customerDetailsResponseDto.setEmail(order.getUser().getEmail()); // Set the email if needed
+		        orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+		    } else {
+		        orderResponseDto.setCustomerDetails(null);
+		    }
+
+		    if (order.getDeliveryAgent() != null && order.getDeliveryAgent().getUser() != null) {
+		        String deliveryAgentEmail = order.getDeliveryAgent().getUser().getEmail();
+		        // Set it in the response DTO
+		        DeliveryAgentResponseDto deliveryAgentResponseDto = modelMapper.map(order.getDeliveryAgent(), DeliveryAgentResponseDto.class);
+		        deliveryAgentResponseDto.setEmail(deliveryAgentEmail);
+		        orderResponseDto.setDeliveryAgent(deliveryAgentResponseDto);
+		    }
 
 		    String deliveryAgentEmail = order.getDeliveryAgent().getUser().getEmail();
 		    String subjectToAgent = "Order #" + order.getOrderId() + " Delivered";
@@ -467,5 +478,52 @@ import com.techlabs.capstone.repository.UserRepository;
 		    return orderResponseDto;
 		}
 
+		
+		
+		
+		@Override
+		public List<OrderResponseDto> getOrdersByDeliveryAgentEmail(Pageable pageable) {
+		    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		    String email = authentication.getName();
+
+		    Optional<DeliveryAgentDetails> deliveryAgentDetailsOptional = deliveryAgentDetailsRepository
+		            .findByUserEmailIgnoreCase(email);
+
+		    if (deliveryAgentDetailsOptional.isEmpty()) {
+		        throw new RuntimeException("Delivery agent not found with the provided email");
+		    }
+
+		    DeliveryAgentDetails deliveryAgentDetails = deliveryAgentDetailsOptional.get();
+
+		    // Fetch orders with pagination
+		    Page<Order> ordersPage = orderRepository.findByDeliveryAgent(deliveryAgentDetails, pageable);
+
+		    // Convert the Page content to a List of OrderResponseDto objects
+		    List<OrderResponseDto> orderResponseDtos = ordersPage.getContent().stream()
+		            .map(order -> {
+		                OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
+
+		                // Ensure customer details are included in the response DTO
+		                if (order.getUser().getCustomerDetails() != null) {
+		                    CustomerDetailsResponseDto customerDetailsResponseDto = modelMapper
+		                            .map(order.getUser().getCustomerDetails(), CustomerDetailsResponseDto.class);
+		                    customerDetailsResponseDto.setEmail(order.getUser().getEmail());
+		                    orderResponseDto.setCustomerDetails(customerDetailsResponseDto);
+		                }
+
+		                return orderResponseDto;
+		            })
+		            .collect(Collectors.toList());
+
+		    return orderResponseDtos;
+		}
+
+
+
+		
+
+		
+}
+
 	
-	}
+	
